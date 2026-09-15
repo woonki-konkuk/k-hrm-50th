@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조직과 인사관리연구 · 50집 지표</title>
+<style>
+:root{
+  color-scheme: light;
+  --page:#eceae4; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --cmp:#898781; --accent:#2a78d6;
+  --wash:rgba(42,120,214,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --page:#000; --surface:#161615; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,.12);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --cmp:#898781; --accent:#3987e5;
+    --wash:rgba(57,135,229,.12);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#000; --surface:#161615; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,.12);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --cmp:#898781; --accent:#3987e5;
+  --wash:rgba(57,135,229,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--page);
+  font-family:-apple-system,system-ui,"Apple SD Gothic Neo","Segoe UI","Noto Sans KR",sans-serif;
+  color:var(--ink);overflow:hidden}
+
+.viewport{position:fixed;inset:0;overflow:hidden}
+/* 창이 1280px보다 좁아도 중앙에 오도록 절대 배치 후 중심 기준 축소 */
+.frame{position:absolute;left:50%;top:50%;width:1280px;height:720px;margin:-360px 0 0 -640px;transform-origin:center center}
+
+.slide{position:absolute;inset:0;background:var(--surface);border-radius:14px;
+  padding:56px 72px 60px;display:flex;flex-direction:column;
+  box-shadow:0 24px 60px rgba(0,0,0,.18);border:1px solid var(--border);
+  opacity:0;transform:translateX(40px) scale(.99);pointer-events:none;
+  transition:opacity .28s ease,transform .28s ease}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px) scale(.99)}
+
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--muted);
+  letter-spacing:.02em;margin-bottom:auto}
+.eyebrow b{color:var(--ink2);font-weight:600}
+.snum{margin-left:auto;font-variant-numeric:tabular-nums}
+
+h1.title{font-size:58px;line-height:1.12;letter-spacing:-.02em;font-weight:800}
+h1.title small{display:block;font-size:26px;font-weight:600;color:var(--accent);margin-top:8px;letter-spacing:0}
+.subtitle{font-size:20px;color:var(--ink2);margin-top:20px;line-height:1.6}
+.subtitle b{color:var(--ink)}
+.title-foot{margin-top:auto;font-size:15px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap}
+.title-foot span{display:flex;align-items:center;gap:7px}
+kbd{font:inherit;font-size:13px;background:var(--page);border:1px solid var(--border);
+  border-radius:5px;padding:1px 7px;color:var(--ink2)}
+
+h2.head{font-size:32px;font-weight:800;letter-spacing:-.01em;margin-bottom:4px}
+h2.head .n{color:var(--muted);font-weight:700;margin-right:12px}
+h2.head .sub{color:var(--muted);font-weight:600}
+.dek{font-size:17px;color:var(--ink2);margin-bottom:18px;line-height:1.5}
+.dek b{color:var(--ink)}
+.body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
+.foot{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.kpi{background:var(--page);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
+.kpi .v{font-size:50px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.kpi .v small{font-size:22px;font-weight:700;color:var(--ink2);margin-left:2px}
+.kpi .k{font-size:16px;color:var(--ink2);margin-top:10px;font-weight:600}
+.kpi .s{font-size:13.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+.callout{background:rgba(128,124,116,.13);border-radius:10px;
+  padding:14px 20px;margin-top:18px;font-size:17px;line-height:1.55;color:var(--ink2)}
+.callout b{color:var(--ink);font-weight:700}
+
+/* ── 애니메이션 선 차트 (공용) ── */
+.ifwrap{display:grid;grid-template-columns:1fr 250px;gap:28px;align-items:stretch;min-height:0}
+.chart{position:relative;min-height:0}
+.chart svg{width:100%;height:100%;display:block;overflow:visible}
+.chart .grid line{stroke:var(--grid);stroke-width:1}
+.chart .base{stroke:var(--baseline);stroke-width:1}
+.chart .tick{fill:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.chart .tick.y{text-anchor:end}
+.chart .tick.x{text-anchor:middle}
+.chart .band{fill:var(--ink)}
+.chart .bandlab{fill:var(--muted);font-size:13px;font-weight:600}
+.chart .mark{stroke:var(--baseline);stroke-width:1}
+.chart .ln{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart .ln.j{stroke:var(--s1)}
+.chart .ln.m{stroke:var(--cmp);stroke-width:2}
+.chart .wash{fill:var(--wash)}
+.chart .hd{stroke:var(--surface);stroke-width:2}
+.chart .hd.j{fill:var(--s1)} .chart .hd.m{fill:var(--cmp)}
+.chart .lab{font-size:15px;font-weight:700;fill:var(--ink);opacity:0;transition:opacity .35s}
+.chart .lab.on{opacity:1}
+.chart .lab.sub{font-weight:600;fill:var(--ink2);font-size:14px}
+.chart .xh{stroke:var(--baseline);stroke-width:1;opacity:0}
+.chart .hit{fill:transparent;cursor:crosshair}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);
+  box-shadow:0 8px 24px rgba(0,0,0,.14);border-radius:9px;padding:10px 13px;font-size:14px;
+  opacity:0;transition:opacity .12s;min-width:150px;z-index:5}
+.tip.on{opacity:1}
+.tip .yr{font-weight:700;margin-bottom:6px;color:var(--ink)}
+.tip .r{display:flex;align-items:center;gap:8px;margin-top:3px;color:var(--ink2)}
+.tip .r i{width:14px;height:0;border-top:3px solid var(--s1);border-radius:2px;flex:none}
+.tip .r i.m{border-top-color:var(--cmp);border-top-width:2px}
+.tip .r i.none{visibility:hidden}
+.tip .r b{color:var(--ink);font-variant-numeric:tabular-nums;margin-left:auto;padding-left:12px}
+
+.side{display:flex;flex-direction:column;justify-content:center;gap:16px;border-left:1px solid var(--border);padding-left:28px}
+.side .year{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+.side .big{font-size:56px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:2px}
+.side .big small{font-size:18px;font-weight:600;color:var(--ink2);display:block;margin-top:6px;letter-spacing:0}
+.side .cmpv{font-size:20px;color:var(--ink2);font-weight:600}
+.side .cmpv b{color:var(--ink);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-direction:column;gap:8px;font-size:15px;color:var(--ink2);margin-top:6px}
+.legend span{display:flex;align-items:center;gap:9px}
+.legend i{width:22px;height:0;border-top:3px solid var(--s1);border-radius:2px}
+.legend i.m{border-top-color:var(--cmp);border-top-width:2px}
+.btns{display:flex;gap:8px;margin-top:6px}
+.btns button{font:inherit;font-size:14px;padding:7px 13px;border-radius:8px;border:1px solid var(--border);
+  background:var(--page);color:var(--ink);cursor:pointer}
+.btns button:hover{border-color:var(--accent)}
+.btns button kbd{font-size:11px;margin-left:5px}
+
+table.dt{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+table.dt th,table.dt td{padding:2px 8px;text-align:right;border-bottom:1px solid var(--grid);line-height:1.35}
+table.dt th{color:var(--ink2);font-weight:600;font-size:13px}
+table.dt th:first-child,table.dt td:first-child{text-align:left}
+.tablev{display:none;overflow:auto;height:100%}
+.chart.tbl svg,.chart.tbl .tip{display:none}
+.chart.tbl .tablev{display:block}
+
+/* ── 인용 상위 30편 ── */
+.top{display:grid;grid-template-columns:44px 1fr 260px 64px;gap:0 16px;align-items:center;row-gap:7px}
+.top .rk{font-size:22px;font-weight:800;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.top .rk.gold{color:var(--accent)}
+.top .t{font-size:16px;font-weight:600;line-height:1.3;color:var(--ink)}
+.top .m{font-size:12.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.top .m b{color:var(--ink2);font-weight:600}
+.top .tr{height:22px;display:flex;align-items:center}
+.top .b{height:22px;border-radius:0 4px 4px 0;background:color-mix(in srgb,var(--s1) 36%,var(--surface));width:0;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.top .c{font-size:19px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums;text-align:right}
+.top .c small{font-size:12px;color:var(--muted);font-weight:500;margin-left:2px}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:44px;align-items:start}
+.two h4{font-size:17px;font-weight:700;color:var(--ink2);margin-bottom:14px}
+.two h4 span{color:var(--muted);font-weight:400;font-size:14px;margin-left:6px}
+.hbars{display:grid;grid-template-columns:max-content 1fr max-content;gap:12px 16px;align-items:center}
+.hbars .lab{font-size:17px;font-weight:600}
+.hbars .tr{height:24px;display:flex;align-items:center}
+.hbars .b{height:24px;border-radius:0 4px 4px 0;background:var(--s1);width:0;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.hbars .val{font-size:17px;color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:600}
+
+/* ── 제목 주제어 레이스 ── */
+.race .rows{position:relative;height:384px;overflow:hidden}
+.race .row{position:absolute;left:0;right:0;top:0;height:40px;display:grid;grid-template-columns:230px 1fr 64px;gap:0 16px;align-items:center;
+  transition:transform 1.6s cubic-bezier(.25,.6,.2,1),opacity .9s;opacity:0;transform:translateY(384px)}
+.race .pbar{display:flex;gap:8px;margin-top:16px;padding-left:246px;padding-right:80px}
+.race .pbar button{flex:1;font:inherit;padding:8px 4px;border-radius:8px;border:1px solid var(--border);background:var(--page);color:var(--ink2);cursor:pointer;line-height:1.2}
+.race .pbar button b{display:block;font-size:16px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.race .pbar button small{display:block;font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.race .pbar button:hover{border-color:var(--accent)}
+.race .pbar button.on{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.race .pbar button.on b{color:var(--ink)} .race .pbar button.on small{color:var(--ink2)}
+.race.tbl .pbar{display:none}
+.race .row .nm{font-size:20px;font-weight:600;text-align:right;white-space:nowrap}
+.race .row .nm .tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 6px;border-radius:5px;margin-right:6px;vertical-align:2px;color:#fff;background:var(--s2)}
+.race .row.new .b{background:color-mix(in srgb,var(--s2) 78%,var(--surface))}
+.race .row.up .b{background:color-mix(in srgb,var(--s2) 78%,var(--surface))}
+.rlegend{display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--ink2)}
+.rdek{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.rtool{display:flex;align-items:center;gap:8px;flex:none}
+.rtool .rlegend{flex-direction:row;gap:14px;margin-right:10px}
+.rtool button{font:inherit;font-size:13px;padding:5px 11px;border-radius:7px;border:1px solid var(--border);background:var(--page);color:var(--ink2);cursor:pointer}
+.rtool button:hover{border-color:var(--accent)}
+.rlegend span{display:flex;align-items:center;gap:8px}
+.rlegend i{width:14px;height:14px;border-radius:3px;background:color-mix(in srgb,var(--s1) 36%,var(--surface));flex:none}
+.rlegend i.n{background:color-mix(in srgb,var(--s2) 78%,var(--surface))} .rlegend i.u{background:var(--s3)}
+.race .row .tr{height:26px;display:flex;align-items:center}
+.race .row .b{height:26px;border-radius:0 4px 4px 0;background:color-mix(in srgb,var(--s1) 36%,var(--surface));width:0;transition:width 1.6s cubic-bezier(.25,.6,.2,1)}
+.side .delta{font-size:15px;line-height:1.6;color:var(--ink2);min-height:78px}
+.side .delta b{color:var(--ink);font-weight:700}
+.side .delta .up{color:var(--accent);font-weight:700}
+.side .delta .dn{color:var(--muted);font-weight:700}
+.side .stepnum{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.race .row .val{font-size:19px;color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:600}
+.race.tbl .rows{display:none}
+/* 레이스 슬라이드: 그래프를 아래로 붙이고 하단 여백 축소 */
+[data-chart="race"].slide{padding-bottom:40px}
+[data-chart="race"] .body{justify-content:flex-end}
+table.dt td.terms{text-align:left;font-variant-numeric:normal;white-space:normal;line-height:1.45}
+table.dt td.terms b{color:var(--ink);font-weight:600}
+
+
+/* ── 표지 (입체 · 모던) ── */
+.slide.cover{overflow:hidden;
+  background:
+    radial-gradient(ellipse 60% 70% at 80% 58%, color-mix(in srgb,var(--accent) 16%,transparent), transparent 70%),
+    radial-gradient(ellipse 45% 50% at 8% 0%, color-mix(in srgb,var(--accent) 7%,transparent), transparent 70%),
+    var(--surface)}
+.slide.cover::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(color-mix(in srgb,var(--ink) 16%,transparent) 1px, transparent 1.3px);background-size:22px 22px;
+  -webkit-mask-image:radial-gradient(ellipse 55% 65% at 78% 55%, #000 10%, transparent 75%);mask-image:radial-gradient(ellipse 55% 65% at 78% 55%, #000 10%, transparent 75%)}
+.cover .eyebrow,.cover .cover-ttl{position:relative;z-index:2}
+.cover-ttl{margin-bottom:auto;max-width:640px}
+.cover-kicker{font-size:15px;font-weight:700;letter-spacing:.18em;color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.cover-kicker::before{content:'';width:36px;height:2px;background:var(--accent);border-radius:2px}
+.cover h1.title{font-size:78px;line-height:1.06;letter-spacing:-.035em}
+.cover h1.title small{font-size:24px;margin-top:22px;color:var(--ink2);font-weight:600;letter-spacing:-.005em}
+.cover-art{position:absolute;right:0;top:0;width:700px;height:720px;z-index:1;overflow:visible}
+.cover-art .pl{opacity:0;transform:translateY(26px);transition:opacity .5s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.cover-art .pl.on{opacity:1;transform:none}
+.cover-art .lbl{font-size:14px;font-weight:700;fill:var(--ink2);opacity:0;transition:opacity .6s}
+.cover-art .lbl.sub{font-weight:500;fill:var(--muted);font-size:12.5px}
+.cover-art .lbl.on{opacity:1}
+.cover-art .ld{stroke:var(--baseline);stroke-width:1;opacity:0;transition:opacity .6s}
+.cover-art .ld.on{opacity:1}
+
+/* ── 표지 문안 ── */
+.lead{font-size:19px;line-height:1.65;color:var(--ink2);margin-top:18px;max-width:1040px}
+.cover-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:34px 0 40px;border-top:1px solid var(--border)}
+.cover-kpis div{padding:18px 20px 0 0;border-right:1px solid var(--border);margin-right:20px}
+.cover-kpis div:last-child{border-right:none;margin-right:0}
+.cover-kpis b{display:block;font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--ink)}
+.cover-kpis b small{font-size:18px;font-weight:700;color:var(--ink2);margin-left:2px;letter-spacing:0}
+.cover-kpis span{display:block;font-size:14px;color:var(--muted);margin-top:8px}
+.closing .cover-kpis.big{margin:44px 0 30px}
+.closing .cover-kpis.big div{padding-top:26px}
+.closing .cover-kpis.big b{font-size:64px}
+.closing .cover-kpis.big b small{font-size:26px}
+.closing .cover-kpis.big span{font-size:17px;margin-top:12px}
+
+/* ── 연표 ── */
+.hist{height:440px}
+.hist .axis{stroke:var(--baseline);stroke-width:2}
+.hist .tk{fill:var(--muted);font-size:13px;text-anchor:middle;font-variant-numeric:tabular-nums}
+.hist .band{fill:var(--accent);opacity:.10}
+.hist .bandtxt{fill:var(--accent);font-size:14px;font-weight:700;text-anchor:middle}
+.hist .reg{stroke:var(--accent);stroke-width:5;stroke-linecap:round}
+.hist .regtxt{fill:var(--ink2);font-size:13.5px;font-weight:600;text-anchor:middle}
+.hist .ev{opacity:0;transition:opacity .6s ease}
+.hist .ev.on{opacity:1}
+.hist .lead-l{stroke:var(--baseline);stroke-width:1}
+.hist .dot-j{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.hist .dot-o{fill:var(--cmp);stroke:var(--surface);stroke-width:2}
+.hist .yr{font-size:15px;font-weight:800;fill:var(--ink)}
+.hist .yr.o{fill:var(--muted)}
+.hist .t1{font-size:15px;font-weight:700;fill:var(--ink)}
+.hist .t2{font-size:13px;fill:var(--ink2)}
+.hist .o .t1{fill:var(--ink2);font-weight:600}
+.hist .o .t2{fill:var(--muted)}
+.hist .grp{font-size:12.5px;font-weight:700;letter-spacing:.04em;fill:var(--muted)}
+
+/* ── 분야별 분포 (누적 영역) ── */
+.farea svg{height:auto}
+/* 쌓인 영역 = 옅은 워시(시리즈 색 28%) + 각 층 윗경계 2px 선 — 면은 조용히, 경계선이 정체성을 전달 */
+.farea .ar{stroke:none;fill-opacity:.28}
+.farea .aln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.farea .alab{font-size:15px;font-weight:700;fill:var(--ink)}
+.farea .alab tspan{font-weight:600;fill:var(--ink2)}
+.farea .ftot{font-size:14px;font-weight:700;fill:var(--ink2);text-anchor:middle;font-variant-numeric:tabular-nums;opacity:0;transition:opacity .4s}
+.farea .ftot.on{opacity:1}
+.tip .r i.sw{width:10px;height:10px;border:none;border-radius:2px}
+.f50 .alab{font-size:16px}
+.f50 .slab{font-size:14px;font-weight:700;fill:var(--ink2);font-variant-numeric:tabular-nums}
+.f50 .ptag{fill:var(--muted);font-size:12px;text-anchor:middle}
+.c1{background:var(--s1)} .c2{background:var(--s2)} .c3{background:var(--s3)} .c4{background:var(--s4)}
+
+/* ── 컨트롤 ── */
+.ctl{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:999px;padding:6px 14px;font-size:14px;color:var(--ink2);z-index:50;
+  box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.ctl button{border:none;background:transparent;color:var(--ink);cursor:pointer;
+  font-size:20px;width:30px;height:30px;border-radius:50%;line-height:1}
+.ctl button:hover{background:var(--page)}
+.dots{display:flex;gap:7px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--baseline);cursor:pointer;transition:.15s}
+.dots i.on{background:var(--accent);transform:scale(1.35)}
+.counter{font-variant-numeric:tabular-nums}
+.progress{position:fixed;top:0;left:0;height:4px;background:var(--accent);z-index:60;transition:width .3s}
+@media (max-width:520px){ .ctl .dots{display:none} }
+@media print{ .viewport{position:static;display:block} .frame{position:static;margin:0 auto;transform:none!important}
+  .slide{position:relative;opacity:1;transform:none;page-break-after:always;box-shadow:none;height:720px;width:1280px;margin:0 auto 20px}
+  .ctl,.progress{display:none} }
+@media (prefers-reduced-motion:reduce){ .top .b,.hbars .b{transition:none} }
+</style>
+</head>
+<body>
+
+<div class="progress" id="prog"></div>
+<div class="viewport">
+  <div class="frame" id="frame">
+
+  <!-- 1 · 표지 -->
+  <section class="slide active cover" data-chart="cover">
+    <svg class="cover-art" viewBox="0 0 700 720" aria-hidden="true"></svg>
+    <div class="eyebrow"><b>50집 기념</b> · 한국인사관리학회<span class="snum">01</span></div>
+    <div class="cover-ttl">
+      <div class="cover-kicker">1979 — 2026</div>
+      <h1 class="title">조직과<br>인사관리연구<small>지난 50집까지의 발자취</small></h1>
+    </div>
+  </section>
+
+  
+    <!-- 연표 · 역사적 위상 -->
+  <section class="slide" data-chart="hist">
+    <div class="eyebrow">역사적 위상<span class="snum">02</span></div>
+    <h2 class="head"><span class="n">01</span>국내 인사조직 분야를 개척한 학술지</h2>
+    <p class="dek">경영학 분과학회 최초의 학회 · 국내 최초의 인사관리 전문 학술지 · 1980년대까지 국내 유일</p>
+    <div class="body"><div class="chart hist"><svg viewBox="0 0 1134 440" aria-label="조직과 인사관리연구 연표"></svg></div></div>
+  </section>
+
+  <!-- 3 · 발행 논문 누적 -->
+  <section class="slide" data-chart="cum">
+    <div class="eyebrow">발행 논문<span class="snum">03</span></div>
+    <h2 class="head"><span class="n">02</span>1979년 창간, 50집</h2>
+    <p class="dek">연도별 발행 논문 누적 · 1979 → 2026 · 배경 = KCI 등재 전 / 등재후보 / 등재</p>
+    <div class="body">
+      <div class="ifwrap">
+        <div class="chart">
+          <svg viewBox="0 0 960 430" aria-label="연도별 발행 논문 누적 선 그래프"></svg>
+          <div class="tip"></div>
+          <div class="tablev"></div>
+        </div>
+        <div class="side">
+          <div class="year">1979</div>
+          <div class="big">1<small>누적 편수</small></div>
+          <div class="cmpv"><b>1979</b> · 이 해 1편</div>
+          <div class="btns">
+            <button class="replay">다시 재생</button>
+            <button class="tbtn">표</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- 분야 구성 50집 (제목 기반 추정) -->
+  <section class="slide" data-chart="field50">
+    <div class="eyebrow">게재 분야<span class="snum">04</span></div>
+    <h2 class="head"><span class="n">03</span>50집 동안 분야 구성의 변화</h2>
+    <p class="dek">1979–2026 · 논문 1,009편 · 8개 시기별 비중 · <b>제목 기반 추정 · 학회 2020–25 분류에 맞춰 보정</b></p>
+    <div class="body">
+      <div class="chart farea f50">
+        <svg viewBox="0 0 1134 440" aria-label="시기별 분야 비중 100% 누적 영역 그래프"></svg>
+        <div class="tip"></div>
+        <div class="tablev"></div>
+      </div>
+    </div>
+  </section>
+
+  
+  <!-- 4 · IF 애니메이션 -->
+  <section class="slide" data-chart="if">
+    <div class="eyebrow">영향력지수<span class="snum">05</span></div>
+    <h2 class="head"><span class="n">04</span>영향력지수의 18년</h2>
+    <p class="dek">KCI IF(직전 2년) · 학술지 vs 경영학 중분류 평균 · 2008 → 2025</p>
+    <div class="body">
+      <div class="ifwrap">
+        <div class="chart">
+          <svg viewBox="0 0 960 430" aria-label="연도별 KCI 영향력지수 선 그래프"></svg>
+          <div class="tip"></div>
+          <div class="tablev"></div>
+        </div>
+        <div class="side">
+          <div class="year">2008</div>
+          <div class="big">0.58<small>학술지 IF</small></div>
+          <div class="cmpv">경영학 평균 <b>0.58</b></div>
+          <div class="legend">
+            <span><i></i>조직과 인사관리연구</span>
+            <span><i class="m"></i>경영학 중분류 평균</span>
+          </div>
+          <div class="btns">
+            <button class="replay">다시 재생</button>
+            <button class="tbtn">표</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+    
+  <!-- 6~8 · 인용 상위 30편 -->
+  <section class="slide">
+    <div class="eyebrow">인용 상위 30편<span class="snum">06</span></div>
+    <h2 class="head"><span class="n">05</span>가장 많이 인용된 논문 <span class="sub">1–10위</span></h2>
+    <p class="dek">KCI 피인용 횟수 · 2026년 9월 기준 · 저자 소속은 게재 당시 원문 각주 기준</p>
+    <div class="body"><div class="top" data-from="0" data-to="10"></div></div>
+  </section>
+  <section class="slide">
+    <div class="eyebrow">인용 상위 30편<span class="snum">07</span></div>
+    <h2 class="head"><span class="n">06</span>가장 많이 인용된 논문 <span class="sub">11–20위</span></h2>
+    <p class="dek">KCI 피인용 횟수 · 2026년 9월 기준 · 저자 소속은 게재 당시 원문 각주 기준</p>
+    <div class="body"><div class="top" data-from="10" data-to="20"></div></div>
+  </section>
+  <section class="slide">
+    <div class="eyebrow">인용 상위 30편<span class="snum">08</span></div>
+    <h2 class="head"><span class="n">07</span>가장 많이 인용된 논문 <span class="sub">21–30위</span></h2>
+    <p class="dek">KCI 피인용 횟수 · 2026년 9월 기준 · 저자 소속은 게재 당시 원문 각주 기준</p>
+    <div class="body"><div class="top" data-from="20" data-to="30"></div></div>
+  </section>
+
+  <!-- 9 · 제목 주제어 레이스 -->
+  <section class="slide" data-chart="race">
+    <div class="eyebrow">제목 분석 · 1,026편<span class="snum">09</span></div>
+    <h2 class="head"><span class="n">08</span>제목이 말해주는 50집</h2>
+    <p class="dek rdek"><span>전체 논문 제목에서 개념어가 <b>몇 회 등장</b>했는지 8개 시기별 상위 8개</span>
+      <span class="rtool"><span class="rlegend"><span><i class="n"></i>새로 진입</span><span><i></i>유지</span></span>
+        <button class="replay">처음부터</button><button class="tbtn">10년 요약</button></span></p>
+    <div class="body">
+      <div class="chart race">
+        <div class="rows"></div>
+        <div class="pbar"></div>
+        <div class="tablev"></div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- 마지막 · 50집 핵심 수치 -->
+  <section class="slide closing">
+    <div class="eyebrow"><b>50집 기념</b> · 한국인사관리학회<span class="snum">10</span></div>
+    <h1 class="title">조직과 인사관리연구</h1>
+    <div class="cover-kpis big">
+      <div><b>50<small>집</small></b><span>2026년 통산 제50집</span></div>
+      <div><b>1,075<small>편</small></b><span>게재 논문 · 50집 2권까지</span></div>
+      <div><b>12,303<small>회</small></b><span>누적 피인용 · 2002년~</span></div>
+      <div><b>2005<small>~</small></b><span>KCI 등재 · 현재까지 유지</span></div>
+    </div>
+  </section>
+  </div>
+</div>
+
+<div class="ctl">
+  <button id="prev" aria-label="이전">‹</button>
+  <span class="counter"><span id="cur">1</span> / <span id="tot">9</span></span>
+  <button id="next" aria-label="다음">›</button>
+  <span class="dots" id="dots"></span>
+</div>
+
+<script>
+/* ───────── 데이터 ─────────
+   IF·순위·인용: KCI 학술지 인용정보(sereId=000984), 2026-09-14 조회
+   발행 편수: 학회 논문 아카이브 PDF 집계(권 = 연도 − 1976). KCI 등록 편수(2002~2025)와 연도별 차이 0~1편 */
+var YEARS=[2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+var IF   =[0.58,1.13,1.27,1.39,1.07,1.50,1.81,2.36,2.35,1.86,2.10,1.46,1.33,1.60,2.48,2.36,1.39,1.69];
+var MID  =[0.58,0.83,0.76,0.89,1.06,1.15,1.17,1.08,1.01,1.04,1.04,1.02,1.13,1.24,1.28,1.30,1.31,1.18];
+var NOSELF=[0.56,1.07,1.02,1.29,1.00,1.16,1.36,1.87,1.70,1.37,1.40,1.24,1.25,1.51,2.36,1.91,1.32,1.56];
+var NPAP =[20,24,27,32,30,29,32,22,29,23,23,25,22,20,24,20,19,23];
+/* 경영학 중분류 내 IF 순위 / 학술지 수. 2008~2020: 연도별 인용지수 목록(IF 내림차순)에서 위치 산출, 2021~2025: KCI 순위표 */
+var RANK =[22,15,8,10,25,13,8,4,2,5,2,12,24,18,5,12,29,17];
+var NJ   =[67,67,67,67,67,74,75,77,76,83,85,85,89,93,97,102,104,105];
+function topPct(i){return 100-(NJ[i]-RANK[i])/(NJ[i]-1)*100}   // KCI 퍼센타일 정의의 여집합 = 상위 %
+
+/* 연도별 발행 편수 1979~2026. 권–연도: 원본 표지 확인(1·2집=1979, 3=1980, 4=1981, 5=1982, 6·7=1983, 8집~=권+1976). 2집은 합본 1파일, 2026은 1집만 */
+var YALL=[];for(var y=1979;y<=2026;y++)YALL.push(y);
+var NY=[1,8,6,6,14,14,13,12,10,13,11,16,17,21,21,29,21,25,10,23,22,31,32,37,40,31,31,32,27,20,24,27,32,30,29,32,23,29,23,23,25,22,20,25,20,19,23,6];
+var CUM=[];NY.reduce(function(a,b,i){CUM[i]=a+b;return a+b},0);
+function fmtN(n){return n.toLocaleString('ko-KR')}
+
+var TOP=[ /* [순위, 제목, 발행, 권(호), 인용, [[저자, 소속],…]] — 소속은 원문 첫 장 저자 각주 기호(*, **, ***)와 대조해 저자별로 확인(2026-09-15) */
+ [1,"서비스 직원의 감정노동 수행과 직무소진의 관계에 관한 연구","2008.09","32(3)",207,[["김영조","부경대학교"],["한주희","부경대학교 대학원"]]],
+ [2,"창의성과 혁신행동의 관계와 집단특성의 조절효과","2003.03","27(1)",192,[["이문선","한양대학교"],["강영순","제주대학교"]]],
+ [3,"국내 조직몰입 연구의 현황과 향후 방향","2014.05","38(2)",139,[["이목화","고려대학교"],["문형구","고려대학교"]]],
+ [4,"개인-조직 적합성과 개인-직무 적합성의 효과성 연구","2011.02","35(1)",138,[["최보인","한국외국어대학교"],["장철희","신영증권"],["권석균","한국외국어대학교"]]],
+ [5,"중간관리자의 임파워링 리더십과 직무몰입, 조직몰입, 조직시민행동간의 관계","2011.02","35(1)",132,[["차동옥","성균관대학교"],["김정식","성균관대학교"]]],
+ [6,"교육훈련 투자가 조직성과에 미치는 영향: 직무만족, 직무능력 향상, 종업원 역량의 매개효과를 중심으로","2008.12","32(4)",119,[["김기태","상명대학교"]]],
+ [7,"전략적 인적자원관리: 기존 연구결과 및 향후 연구과제 개관","2002.09","26(2)",100,[["양혁승","연세대학교"]]],
+ [8,"업무과부하, 직무소진, 이직의도의 관계에서 직무자율성과 경력성장기회의 조절효과","2013.11","37(4)",99,[["최병권","상명대학교"]]],
+ [8,"공정성이 조직몰입 및 직무만족에 미치는 영향에 관한 실증연구","2002.12","26(3)",99,[["민경호","호서대학교"],["조국행","대림대학"]]],
+ [10,"비정규직 근로자의 직무만족 결정요인","2002.06","26(1)",89,[["박우성","경희대학교"],["노용진","한국노동연구원"]]],
+ [11,"신뢰, 조직몰입, 조직시민행동간의 관련성에 관한 연구: 조직몰입의 매개적 역할","2005.12","29(4)",88,[["최익봉","한국전자통신연구원"]]],
+ [12,"리더의 진실성이 부하의 장인적 직무수행(Job Crafting)에 미치는 영향과 그 과정에 대한 연구","2012.02","36(1)",85,[["김창호","한양대학교"],["심원술","한양대학교"]]],
+ [13,"감정표현요구와 감정부조화, 그리고 심리적 반응 간의 관계에 관한 연구","2008.03","32(1)",82,[["박상언","충북대학교"]]],
+ [14,"조직지원인식의 선행요인과 결과요인에 관한 연구: 매개효과의 검증을 중심으로","2003.03","27(1)",80,[["김윤성","영산대학교"]]],
+ [15,"공감(compassion)과 정서적 몰입 및 직무성과와의 관계에 관한 연구","2013.05","37(2)",79,[["오아라","서강대학교"],["박경규","서강대학교"],["용현주","서강대학교"]]],
+ [16,"기업의 사회적 책임(CSR)이 조직 구성원의 조직몰입과 조직시민행동에 미치는 영향에 관한 연구","2011.08","35(3)",78,[["박혜원","고려대학교"],["한주희","중앙대학교"]]],
+ [17,"조직혁신 과정에서 사회정치적 지원, 조직지원인식, 혁신행동의 관계","2006.09","30(3)",77,[["설홍수","에너지경제연구원"]]],
+ [17,"진성 리더십(Authentic Leadership)과 조직몰입 간의 관계에서 LMX와 심리적 자본의 매개효과 분석","2013.08","37(3)",77,[["한봉주","SK텔레콤 미래경영연구원"]]],
+ [19,"조직공정성, LMX의 질 및 심리적 임파워먼트가 서비스 지향적 조직시민행동에 미치는 영향","2004.03","28(1)",76,[["강대석","미네소타대학교"],["차동옥","성균관대학교"]]],
+ [19,"분배공정성에 따른 직무부담과 혁신적 업무행동과의 관계","2002.06","26(1)",76,[["이지우",""]]],
+ [19,"상사에 대한 신뢰 및 조직지원인식에 대한 조직공정성의 효과와 조직시민행동과의 관계","2005.06","29(2)",76,[["정홍술","동아인재대학"],["이경근","동아인재대학"]]],
+ [22,"리더십 유형이 조직몰입에 미치는 영향에 관한 연구: 조직 신뢰를 매개변인으로","2004.03","28(1)",75,[["이정","경희대학교"],["장영철","경희대학교"]]],
+ [23,"조직냉소주의와 리더십, 조직공정성 및 조직유효성과의 관계","2004.12","28(4)",74,[["차동옥","성균관대학교"]]],
+ [23,"감성노동의 개념화와 선행요인","2005.12","29(4)",74,[["박동수","영남대학교"],["전명구","ING생명보험"],["정성한","영남대학교"]]],
+ [25,"고몰입인적자원관리와 조직유효성의 관계에 있어서 지식경영의 조절효과에 관한 탐색적 연구","2003.06","27(2)",73,[["권동인","아주대학교"],["박호환","아주대학교"]]],
+ [26,"진성 리더십이 심리적 웰빙과 팀 성과에 미치는 영향에 관한 연구: 팀 에너지의 매개효과를 중심으로","2013.05","37(2)",72,[["정예지","이화여자대학교"],["김문주","이화여자대학교"]]],
+ [27,"조직정치와 조직시민행동, 직무긴장, 이직의도와 관계 및 조직지원인식의 매개효과","2010.05","34(2)",71,[["배성현","영남대학교"],["김미선","영남대학교"]]],
+ [28,"상사의 행동특성이 구성원의 심리적 안전감, 침묵과 친사회적 발언행동에 미치는 영향","2012.11","36(4)",70,[["최선규","서강대학교"],["지성구","한밭대학교"]]],
+ [29,"신뢰의 영향요인 및 결과에 관한 연구","2003.09","27(3)",67,[["이재연","성균관대학교"],["차동옥","성균관대학교"]]],
+ [29,"집단 응집성, 상사에 대한 신뢰, 직무만족이 팀 몰입과 조직몰입을 통해 조직시민행동 및 역할 내 행동에 미치는 간접효과에 대한 연구","2003.12","27(4)",67,[["서재현","대구대학교"]]]
+];
+
+
+/* ───────── 유틸 ───────── */
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function svgel(tag,attrs){var e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e}
+function f2(v){return v.toFixed(2)}
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ───────── 애니메이션 선 차트 (공용) ─────────
+   o.years  : x축 연도 배열 (기본 YEARS)     o.xtick(y) : 축 라벨을 붙일 연도만 true
+   o.series : [{data, cls:'j'|'m', wash}]   첫 시리즈가 툴팁 위치의 기준
+   o.ymin/ymax/invert : 축 범위, invert=true면 작은 값이 위(순위)
+   o.ticks : [{v,txt,base}]   o.labels : [{i,v,txt,dx,dy,anchor,sub}]
+   o.bands : [{from,to,label,shade}] 배경 구간   o.marks : [{year,label}] 세로 기준선
+   o.side(i) : 사이드 카운터 갱신   o.tipRows(i) : [{cls,name,val}]   o.table : {head:[], row(i):[]} */
+function LineChart(root,o){
+  var W=960,H=430,ML=52,MR=120,MT=26,MB=44, pw=W-ML-MR, ph=H-MT-MB;
+  var svg=root.querySelector('svg'), tip=root.querySelector('.tip'), chart=root.querySelector('.chart'), tv=root.querySelector('.tablev');
+  var YRS=o.years||YEARS, n=YRS.length, half=pw/(n-1)/2;
+  function X(i){return ML+pw*i/(n-1)}
+  function Y(v){var r=(v-o.ymin)/(o.ymax-o.ymin);return MT+ph*(o.invert?r:1-r)}
+
+  (o.bands||[]).forEach(function(b){
+    var x0=Math.max(ML,X(YRS.indexOf(b.from))-half), x1=Math.min(W-MR,X(YRS.indexOf(b.to))+half);
+    if(b.shade){var r=svgel('rect',{x:x0,y:MT,width:x1-x0,height:ph,'class':'band'});r.style.opacity=b.shade;svg.appendChild(r)}
+    var t=svgel('text',{x:x0+8,y:MT+16+(b.line||0)*17,'class':'bandlab'});t.textContent=b.label;svg.appendChild(t);
+  });
+  var g=svgel('g',{'class':'grid'});
+  o.ticks.forEach(function(t){
+    g.appendChild(svgel('line',{x1:ML,x2:W-MR,y1:Y(t.v),y2:Y(t.v),'class':t.base?'base':''}));
+    var tx=svgel('text',{x:ML-10,y:Y(t.v)+5,'class':'tick y'});tx.textContent=t.txt;svg.appendChild(tx);
+  });
+  svg.appendChild(g);
+  (o.marks||[]).forEach(function(m){
+    var i=YRS.indexOf(m.year);
+    svg.appendChild(svgel('line',{x1:X(i),x2:X(i),y1:MT,y2:H-MB,'class':'mark'}));
+    var t=svgel('text',{x:X(i)+6,y:MT+50,'class':'bandlab'});t.textContent=m.label;svg.appendChild(t);
+  });
+  YRS.forEach(function(y,i){if(o.xtick&&!o.xtick(y))return;var t=svgel('text',{x:X(i),y:H-MB+24,'class':'tick x'});t.textContent=y;svg.appendChild(t)});
+
+  var S=o.series.map(function(s){
+    var r={data:s.data,cls:s.cls};
+    if(s.wash){r.wash=svgel('path',{'class':'wash'});svg.appendChild(r.wash)}
+    return r;
+  });
+  S.slice().reverse().forEach(function(s){s.ln=svgel('path',{'class':'ln '+s.cls});svg.appendChild(s.ln)});
+  S.slice().reverse().forEach(function(s){s.hd=svgel('circle',{r:s.cls==='j'?6:5,'class':'hd '+s.cls});svg.appendChild(s.hd)});
+
+  o.labels.forEach(function(L){
+    var t=svgel('text',{x:X(L.i)+L.dx,y:Y(L.v)+L.dy,'text-anchor':L.anchor,'class':'lab'+(L.sub?' sub':'')});
+    t.textContent=L.txt; L.el=t; svg.appendChild(t);
+  });
+
+  /* 호버: 크로스헤어 + 툴팁 (그려진 범위까지만) */
+  var xh=svgel('line',{y1:MT,y2:H-MB,'class':'xh'});svg.appendChild(xh);
+  var hit=svgel('rect',{x:ML,y:MT,width:pw,height:ph,'class':'hit'});svg.appendChild(hit);
+  var shown=n;
+  function tipAt(i){
+    tip.textContent='';
+    tip.appendChild(el('div','yr',YRS[i]+'년'));
+    o.tipRows(i).forEach(function(r){var d=el('div','r');d.appendChild(el('i',r.cls||'none'));d.appendChild(el('span',null,r.name));d.appendChild(el('b',null,r.val));tip.appendChild(d)});
+    var rect=chart.getBoundingClientRect();
+    var px=X(i)*rect.width/W, py=Y(S[0].data[i])*rect.height/H;
+    tip.style.left=(px+(i>n*0.75?-170:16))+'px'; tip.style.top=Math.max(0,py-30)+'px';
+    tip.classList.add('on'); xh.setAttribute('x1',X(i));xh.setAttribute('x2',X(i));xh.style.opacity=1;
+  }
+  hit.addEventListener('pointermove',function(e){
+    var rect=svg.getBoundingClientRect(); var x=(e.clientX-rect.left)*W/rect.width;
+    var i=Math.round((x-ML)/pw*(n-1)); i=Math.max(0,Math.min(shown-1,i)); tipAt(i);
+  });
+  hit.addEventListener('pointerleave',function(){tip.classList.remove('on');xh.style.opacity=0});
+
+  /* 표 */
+  (function(){
+    var t=el('table','dt'),thead=el('thead'),tr=el('tr');
+    o.table.head.forEach(function(h){tr.appendChild(el('th',null,h))});thead.appendChild(tr);t.appendChild(thead);
+    var tb=el('tbody');YRS.forEach(function(y,i){var r=el('tr');o.table.row(i).forEach(function(c){r.appendChild(el('td',null,c))});tb.appendChild(r)});
+    t.appendChild(tb);tv.appendChild(t);
+  })();
+  function toggleTable(){chart.classList.toggle('tbl')}
+
+  /* 애니메이션 */
+  var raf=null, DUR=reduce?0:(o.dur||7500);
+  function pathUpTo(arr,f){
+    var k=Math.floor(f), d='';
+    for(var i=0;i<=k;i++) d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(arr[i]).toFixed(1);
+    if(k<arr.length-1){var r=f-k, v=arr[k]+(arr[k+1]-arr[k])*r, x=X(k)+(X(k+1)-X(k))*r; d+='L'+x.toFixed(1)+' '+Y(v).toFixed(1); return {d:d,x:x,y:Y(v)}}
+    return {d:d,x:X(k),y:Y(arr[k])};
+  }
+  function frame(f){
+    S.forEach(function(s){
+      var p=pathUpTo(s.data,f);
+      s.ln.setAttribute('d',p.d); s.hd.setAttribute('cx',p.x); s.hd.setAttribute('cy',p.y);
+      if(s.wash){var yb=Y(o.invert?o.ymax:o.ymin);s.wash.setAttribute('d',p.d+'L'+p.x.toFixed(1)+' '+yb+'L'+X(0)+' '+yb+'Z')}
+    });
+    var k=Math.floor(f+1e-6);
+    o.side(k);
+    o.labels.forEach(function(L){L.el.classList.toggle('on',f>=L.i-1e-6)});
+    shown=k+1;
+  }
+  function play(){
+    if(raf)cancelAnimationFrame(raf);
+    tip.classList.remove('on'); xh.style.opacity=0; chart.classList.remove('tbl');
+    var last=n-1;
+    if(DUR===0){frame(last);return}
+    var t0=null;
+    function step(ts){
+      if(!t0)t0=ts; var p=Math.min(1,(ts-t0)/DUR);
+      frame(p*last);
+      if(p<1)raf=requestAnimationFrame(step); else raf=null;
+    }
+    raf=requestAnimationFrame(step);
+  }
+  frame(0);
+  root.querySelector('.replay').onclick=play;
+  root.querySelector('.tbtn').onclick=toggleTable;
+  return {play:play,toggleTable:toggleTable};
+}
+
+var CHARTS={};
+/* ── 발행 논문 누적 ── */
+(function(){
+  var root=document.querySelector('[data-chart="cum"]');
+  var yr=root.querySelector('.year'), big=root.querySelector('.big'), cmp=root.querySelector('.cmpv');
+  var i500=CUM.findIndex(function(v){return v>=500}), i1000=CUM.findIndex(function(v){return v>=1000}), last=YALL.length-1;
+  CHARTS['cum']=LineChart(root,{
+    years:YALL, xtick:function(y){return y===1979||(y%5===0&&y>1982)},
+    series:[{data:CUM,cls:'j',wash:true}],
+    ymin:0,ymax:1100,invert:false,dur:9000,
+    ticks:[{v:0,txt:'0',base:true},{v:250,txt:'250'},{v:500,txt:'500'},{v:750,txt:'750'},{v:1000,txt:'1,000'}],
+    bands:[
+      {from:1979,to:2001,label:'KCI 등재 전',shade:0},
+      {from:2002,to:2004,label:'등재후보 2002–04',shade:.05,line:1},
+      {from:2005,to:2026,label:'KCI 등재 2005~',shade:.10}
+    ],
+    marks:[{year:2010,label:'2010 학술지명 변경'}],
+    labels:[
+      {i:i500, v:CUM[i500], txt:'500편 · '+YALL[i500], dx:-10, dy:4, anchor:'end'},
+      {i:i1000,v:CUM[i1000],txt:'1,000편 · '+YALL[i1000], dx:-10, dy:4, anchor:'end'},
+      {i:last, v:CUM[last], txt:'1,026편', dx:14, dy:5, anchor:'start'}
+    ],
+    side:function(i){yr.textContent=YALL[i];big.firstChild.textContent=fmtN(CUM[i]);cmp.textContent='';cmp.appendChild(el('b',null,YALL[i]));cmp.appendChild(document.createTextNode(' · 이 해 '+NY[i]+'편'))},
+    tipRows:function(i){return [{cls:'',name:'누적',val:fmtN(CUM[i])+'편'},{cls:'none',name:'이 해 발행',val:NY[i]+'편'}]},
+    table:{head:['연도','발행 편수','누적'],row:function(i){return [YALL[i],NY[i],fmtN(CUM[i])]}}
+  });
+})();
+
+/* ── IF ── */
+(function(){
+  var root=document.querySelector('[data-chart="if"]');
+  var yr=root.querySelector('.year'), big=root.querySelector('.big'), cmp=root.querySelector('.cmpv b');
+  CHARTS['if']=LineChart(root,{
+    series:[{data:IF,cls:'j',wash:true},{data:MID,cls:'m'}],
+    ymin:0,ymax:3,invert:false,
+    ticks:[{v:0,txt:'0.0',base:true},{v:1,txt:'1.0'},{v:2,txt:'2.0'},{v:3,txt:'3.0'}],
+    labels:[
+      {i:0, v:IF[0], txt:'0.58', dx:-6, dy:-12, anchor:'end'},
+      {i:7, v:IF[7], txt:'2.36', dx:0, dy:-14, anchor:'middle'},
+      {i:14,v:IF[14],txt:'2.48 · 최고', dx:0, dy:-14, anchor:'middle'},
+      {i:17,v:IF[17],txt:'학술지 IF 1.69', dx:14, dy:5, anchor:'start'},
+      {i:17,v:MID[17],txt:'경영학 평균 1.18', dx:14, dy:5, anchor:'start', sub:true}
+    ],
+    side:function(i){yr.textContent=YEARS[i];big.firstChild.textContent=f2(IF[i]);cmp.textContent=f2(MID[i])},
+    tipRows:function(i){return [{cls:'',name:'학술지 IF',val:f2(IF[i])},{cls:'m',name:'경영학 평균',val:f2(MID[i])},{cls:'none',name:'논문 수',val:NPAP[i]+'편'}]},
+    table:{head:['연도','논문 수','학술지 IF','경영학 평균','자기인용 제외 IF'],row:function(i){return [YEARS[i],NPAP[i],f2(IF[i]),f2(MID[i]),f2(NOSELF[i])]}}
+  });
+})();
+
+
+/* ───────── 제목 주제어 레이스 (8개 시기, 상위 8 · 클릭/→로 한 단계씩) ─────────
+   RACE = {periods:[{from,to,tag,n,top:[[개념어,편수],…],new:[…],gone:[…]}], decades:[{label,n,top}], coverage:[제목수, 매칭수]}
+   개념어 사전·집계: title_topics.py (제목 파일명 → 정규식 매칭) */
+var RACE={"periods":[{"from":1979,"to":1986,"tag":"창간기","n":66,"top":[["인사관리 현황·동향",14],["국제·글로벌",11],["임금·보상",8],["노사관계·노조",8],["교육훈련·학습",6],["리더십·상사",5],["참여·경영참가",3],["이직·정착",3],["여성·다양성",3],["기술·AI·디지털",2]],"new":[],"gone":[],"rank":{"인사관리 현황·동향":1,"국제·글로벌":2,"노사관계·노조":3,"임금·보상":4,"교육훈련·학습":5,"리더십·상사":6,"여성·다양성":7,"이직·정착":8,"참여·경영참가":9,"기술·AI·디지털":10,"복리후생":11,"조직·기업성과":12,"조직문화·풍토":13,"갈등":14,"고용·비정규직":15,"근로시간·근무제":16,"동기·목표":17,"성격·개인특성":18,"안전·건강":19,"인사고과·평가":20,"조직몰입·몰입":21,"직무만족":22,"직무특성·자율성":23,"채용·선발":24},"cnt":{"인사관리 현황·동향":14,"국제·글로벌":11,"노사관계·노조":8,"임금·보상":8,"교육훈련·학습":6,"리더십·상사":5,"여성·다양성":3,"이직·정착":3,"참여·경영참가":3,"기술·AI·디지털":2,"복리후생":2,"조직·기업성과":2,"조직문화·풍토":2,"갈등":1,"고용·비정규직":1,"근로시간·근무제":1,"동기·목표":1,"성격·개인특성":1,"안전·건강":1,"인사고과·평가":1,"조직몰입·몰입":1,"직무만족":1,"직무특성·자율성":1,"채용·선발":1}},{"from":1987,"to":1996,"tag":"성장기","n":177,"top":[["국제·글로벌",25],["인사관리 현황·동향",17],["임금·보상",16],["조직문화·풍토",14],["교육훈련·학습",13],["조직·기업성과",13],["리더십·상사",11],["인사고과·평가",10],["노사관계·노조",10],["직무만족",9]],"new":["조직문화·풍토","조직·기업성과","인사고과·평가"],"gone":["노사관계·노조","참여·경영참가","이직·정착"],"rank":{"국제·글로벌":1,"인사관리 현황·동향":2,"임금·보상":3,"조직문화·풍토":4,"교육훈련·학습":5,"조직·기업성과":6,"리더십·상사":7,"노사관계·노조":8,"인사고과·평가":9,"기술·AI·디지털":10,"직무만족":11,"성과주의·직무중심 인사":12,"조직구조·변화":13,"조직몰입·몰입":14,"개인·직무성과":15,"여성·다양성":16,"소진·스트레스":17,"전략적 HRM·HR시스템":18,"창의성·혁신":19,"갈등":20,"성격·개인특성":21,"안전·건강":22,"채용·선발":23,"팀":24,"경력":25,"권력·영향력":26,"동기·목표":27,"복리후생":28,"최고경영자·CEO":29,"커뮤니케이션":30,"고용·비정규직":31,"공정성":32,"웰빙·행복":33,"이직·정착":34,"직무특성·자율성":35,"팀성과":36,"신뢰":37,"심리적 계약":38,"적합성":39,"참여·경영참가":40},"cnt":{"국제·글로벌":25,"인사관리 현황·동향":17,"임금·보상":16,"조직문화·풍토":14,"교육훈련·학습":13,"조직·기업성과":13,"리더십·상사":11,"노사관계·노조":10,"인사고과·평가":10,"기술·AI·디지털":9,"직무만족":9,"성과주의·직무중심 인사":7,"조직구조·변화":7,"조직몰입·몰입":7,"개인·직무성과":6,"여성·다양성":6,"소진·스트레스":5,"전략적 HRM·HR시스템":5,"창의성·혁신":5,"갈등":4,"성격·개인특성":4,"안전·건강":4,"채용·선발":4,"팀":4,"경력":3,"권력·영향력":3,"동기·목표":3,"복리후생":3,"최고경영자·CEO":3,"커뮤니케이션":3,"고용·비정규직":2,"공정성":2,"웰빙·행복":2,"이직·정착":2,"직무특성·자율성":2,"팀성과":2,"신뢰":1,"심리적 계약":1,"적합성":1,"참여·경영참가":1}},{"from":1997,"to":2001,"tag":"IMF 전후","n":118,"top":[["리더십·상사",21],["인사관리 현황·동향",13],["조직·기업성과",9],["성격·개인특성",9],["교육훈련·학습",9],["조직문화·풍토",8],["최고경영자·CEO",7],["노사관계·노조",7],["조직몰입·몰입",7],["고용·비정규직",7]],"new":["성격·개인특성","최고경영자·CEO","노사관계·노조"],"gone":["국제·글로벌","임금·보상","인사고과·평가"],"rank":{"리더십·상사":1,"인사관리 현황·동향":2,"교육훈련·학습":3,"성격·개인특성":4,"조직·기업성과":5,"조직문화·풍토":6,"고용·비정규직":7,"노사관계·노조":8,"조직몰입·몰입":9,"최고경영자·CEO":10,"국제·글로벌":11,"임금·보상":12,"직무만족":13,"창의성·혁신":14,"이직·정착":15,"조직시민행동":16,"직무특성·자율성":17,"공정성":18,"기술·AI·디지털":19,"신뢰":20,"안전·건강":21,"여성·다양성":22,"인사고과·평가":23,"적합성":24,"조직구조·변화":25,"지식경영":26,"참여·경영참가":27,"LMX·교환관계":28,"개인·직무성과":29,"경력":30,"의사결정":31,"일-가정·워라밸":32,"임파워먼트":33,"팀":34,"갈등":35,"감정·정서":36,"고성과·고몰입 작업시스템":37,"권력·영향력":38,"근로시간·근무제":39,"소진·스트레스":40,"심리적 계약":41,"채용·선발":42},"cnt":{"리더십·상사":21,"인사관리 현황·동향":13,"교육훈련·학습":9,"성격·개인특성":9,"조직·기업성과":9,"조직문화·풍토":8,"고용·비정규직":7,"노사관계·노조":7,"조직몰입·몰입":7,"최고경영자·CEO":7,"국제·글로벌":6,"임금·보상":6,"직무만족":6,"창의성·혁신":6,"이직·정착":5,"조직시민행동":5,"직무특성·자율성":4,"공정성":3,"기술·AI·디지털":3,"신뢰":3,"안전·건강":3,"여성·다양성":3,"인사고과·평가":3,"적합성":3,"조직구조·변화":3,"지식경영":3,"참여·경영참가":3,"LMX·교환관계":2,"개인·직무성과":2,"경력":2,"의사결정":2,"일-가정·워라밸":2,"임파워먼트":2,"팀":2,"갈등":1,"감정·정서":1,"고성과·고몰입 작업시스템":1,"권력·영향력":1,"근로시간·근무제":1,"소진·스트레스":1,"심리적 계약":1,"채용·선발":1}},{"from":2002,"to":2006,"tag":"KCI 등재기","n":155,"top":[["리더십·상사",21],["조직몰입·몰입",19],["조직·기업성과",18],["교육훈련·학습",13],["조직시민행동",12],["공정성",11],["고용·비정규직",11],["창의성·혁신",10],["신뢰",9],["소진·스트레스",8]],"new":["조직몰입·몰입","조직시민행동","공정성","고용·비정규직","창의성·혁신"],"gone":["인사관리 현황·동향","성격·개인특성","조직문화·풍토","최고경영자·CEO","노사관계·노조"],"rank":{"리더십·상사":1,"조직몰입·몰입":2,"조직·기업성과":3,"교육훈련·학습":4,"조직시민행동":5,"고용·비정규직":6,"공정성":7,"창의성·혁신":8,"신뢰":9,"국제·글로벌":10,"성격·개인특성":11,"소진·스트레스":12,"임금·보상":13,"지식경영":14,"동기·목표":15,"직무만족":16,"직무특성·자율성":17,"팀":18,"인사고과·평가":19,"전략적 HRM·HR시스템":20,"조직지원인식":21,"여성·다양성":22,"자기효능감·심리자본":23,"조직문화·풍토":24,"LMX·교환관계":25,"경력":26,"노사관계·노조":27,"윤리·CSR·ESG":28,"인사관리 현황·동향":29,"고성과·고몰입 작업시스템":30,"권력·영향력":31,"이직·정착":32,"조직구조·변화":33,"최고경영자·CEO":34,"커뮤니케이션":35,"갈등":36,"감정·정서":37,"기술·AI·디지털":38,"성과주의·직무중심 인사":39,"의사결정":40,"일-가정·워라밸":41,"임파워먼트":42,"정체성·동일시":43,"조직정치":44,"참여·경영참가":45,"개인·직무성과":46,"복리후생":47,"심리적 계약":48,"안전·건강":49},"cnt":{"리더십·상사":21,"조직몰입·몰입":19,"조직·기업성과":18,"교육훈련·학습":13,"조직시민행동":12,"고용·비정규직":11,"공정성":11,"창의성·혁신":10,"신뢰":9,"국제·글로벌":8,"성격·개인특성":8,"소진·스트레스":8,"임금·보상":8,"지식경영":8,"동기·목표":7,"직무만족":7,"직무특성·자율성":7,"팀":7,"인사고과·평가":6,"전략적 HRM·HR시스템":6,"조직지원인식":6,"여성·다양성":5,"자기효능감·심리자본":5,"조직문화·풍토":5,"LMX·교환관계":4,"경력":4,"노사관계·노조":4,"윤리·CSR·ESG":4,"인사관리 현황·동향":4,"고성과·고몰입 작업시스템":3,"권력·영향력":3,"이직·정착":3,"조직구조·변화":3,"최고경영자·CEO":3,"커뮤니케이션":3,"갈등":2,"감정·정서":2,"기술·AI·디지털":2,"성과주의·직무중심 인사":2,"의사결정":2,"일-가정·워라밸":2,"임파워먼트":2,"정체성·동일시":2,"조직정치":2,"참여·경영참가":2,"개인·직무성과":1,"복리후생":1,"심리적 계약":1,"안전·건강":1}},{"from":2007,"to":2011,"tag":"등재 정착","n":129,"top":[["조직몰입·몰입",20],["리더십·상사",19],["조직·기업성과",14],["창의성·혁신",12],["직무만족",11],["노사관계·노조",10],["팀",8],["성격·개인특성",8],["조직문화·풍토",8],["이직·정착",8]],"new":["직무만족","노사관계·노조","팀","성격·개인특성"],"gone":["교육훈련·학습","조직시민행동","공정성","고용·비정규직"],"rank":{"조직몰입·몰입":1,"리더십·상사":2,"조직·기업성과":3,"창의성·혁신":4,"직무만족":5,"노사관계·노조":6,"성격·개인특성":7,"이직·정착":8,"조직문화·풍토":9,"팀":10,"소진·스트레스":11,"조직시민행동":12,"참여·경영참가":13,"최고경영자·CEO":14,"여성·다양성":15,"윤리·CSR·ESG":16,"감정·정서":17,"경력":18,"고용·비정규직":19,"신뢰":20,"인사관리 현황·동향":21,"LMX·교환관계":22,"교육훈련·학습":23,"국제·글로벌":24,"임금·보상":25,"조직지원인식":26,"지식경영":27,"직무특성·자율성":28,"개인·직무성과":29,"기술·AI·디지털":30,"자기효능감·심리자본":31,"전략적 HRM·HR시스템":32,"조직구조·변화":33,"갈등":34,"공정성":35,"동기·목표":36,"성과주의·직무중심 인사":37,"안전·건강":38,"의사결정":39,"인사고과·평가":40,"일-가정·워라밸":41,"적합성":42,"조직정치":43,"고성과·고몰입 작업시스템":44,"근로시간·근무제":45,"무례·괴롭힘·일탈":46,"복리후생":47,"심리적 계약":48,"임파워먼트":49,"정체성·동일시":50,"채용·선발":51,"팀성과":52},"cnt":{"조직몰입·몰입":20,"리더십·상사":19,"조직·기업성과":14,"창의성·혁신":12,"직무만족":11,"노사관계·노조":10,"성격·개인특성":8,"이직·정착":8,"조직문화·풍토":8,"팀":8,"소진·스트레스":7,"조직시민행동":7,"참여·경영참가":7,"최고경영자·CEO":7,"여성·다양성":6,"윤리·CSR·ESG":6,"감정·정서":5,"경력":5,"고용·비정규직":5,"신뢰":5,"인사관리 현황·동향":5,"LMX·교환관계":4,"교육훈련·학습":4,"국제·글로벌":4,"임금·보상":4,"조직지원인식":4,"지식경영":4,"직무특성·자율성":4,"개인·직무성과":3,"기술·AI·디지털":3,"자기효능감·심리자본":3,"전략적 HRM·HR시스템":3,"조직구조·변화":3,"갈등":2,"공정성":2,"동기·목표":2,"성과주의·직무중심 인사":2,"안전·건강":2,"의사결정":2,"인사고과·평가":2,"일-가정·워라밸":2,"적합성":2,"조직정치":2,"고성과·고몰입 작업시스템":1,"근로시간·근무제":1,"무례·괴롭힘·일탈":1,"복리후생":1,"심리적 계약":1,"임파워먼트":1,"정체성·동일시":1,"채용·선발":1,"팀성과":1}},{"from":2012,"to":2016,"tag":"학술지명 변경 후","n":143,"top":[["리더십·상사",36],["창의성·혁신",18],["조직몰입·몰입",16],["직무만족",15],["조직시민행동",13],["팀",12],["감정·정서",12],["동기·목표",10],["조직·기업성과",9],["교육훈련·학습",9]],"new":["조직시민행동","감정·정서","동기·목표"],"gone":["조직·기업성과","노사관계·노조","성격·개인특성"],"rank":{"리더십·상사":1,"창의성·혁신":2,"조직몰입·몰입":3,"직무만족":4,"조직시민행동":5,"감정·정서":6,"팀":7,"동기·목표":8,"갈등":9,"교육훈련·학습":10,"조직·기업성과":11,"공정성":12,"소진·스트레스":13,"직무특성·자율성":14,"개인·직무성과":15,"고용·비정규직":16,"LMX·교환관계":17,"이직·정착":18,"일-가정·워라밸":19,"자기효능감·심리자본":20,"조직문화·풍토":21,"발언·침묵":22,"경력":23,"윤리·CSR·ESG":24,"적합성":25,"참여·경영참가":26,"팀성과":27,"고성과·고몰입 작업시스템":28,"성격·개인특성":29,"성과주의·직무중심 인사":30,"여성·다양성":31,"웰빙·행복":32,"인사고과·평가":33,"인사관리 현황·동향":34,"임파워먼트":35,"최고경영자·CEO":36,"국제·글로벌":37,"권력·영향력":38,"노사관계·노조":39,"무례·괴롭힘·일탈":40,"심리적 계약":41,"안전·건강":42,"임금·보상":43,"정체성·동일시":44,"조직정치":45,"조직지원인식":46,"근로시간·근무제":47,"신뢰":48,"지식경영":49,"채용·선발":50,"커뮤니케이션":51},"cnt":{"리더십·상사":36,"창의성·혁신":18,"조직몰입·몰입":16,"직무만족":15,"조직시민행동":13,"감정·정서":12,"팀":12,"동기·목표":10,"갈등":9,"교육훈련·학습":9,"조직·기업성과":9,"공정성":8,"소진·스트레스":8,"직무특성·자율성":8,"개인·직무성과":7,"고용·비정규직":7,"LMX·교환관계":6,"이직·정착":6,"일-가정·워라밸":6,"자기효능감·심리자본":6,"조직문화·풍토":6,"발언·침묵":5,"경력":4,"윤리·CSR·ESG":4,"적합성":4,"참여·경영참가":4,"팀성과":4,"고성과·고몰입 작업시스템":3,"성격·개인특성":3,"성과주의·직무중심 인사":3,"여성·다양성":3,"웰빙·행복":3,"인사고과·평가":3,"인사관리 현황·동향":3,"임파워먼트":3,"최고경영자·CEO":3,"국제·글로벌":2,"권력·영향력":2,"노사관계·노조":2,"무례·괴롭힘·일탈":2,"심리적 계약":2,"안전·건강":2,"임금·보상":2,"정체성·동일시":2,"조직정치":2,"조직지원인식":2,"근로시간·근무제":1,"신뢰":1,"지식경영":1,"채용·선발":1,"커뮤니케이션":1}},{"from":2017,"to":2021,"tag":"","n":113,"top":[["리더십·상사",23],["창의성·혁신",17],["조직몰입·몰입",11],["직무만족",11],["무례·괴롭힘·일탈",9],["팀",9],["감정·정서",8],["이직·정착",8],["여성·다양성",7],["최고경영자·CEO",6]],"new":["무례·괴롭힘·일탈","이직·정착"],"gone":["조직시민행동","동기·목표"],"rank":{"리더십·상사":1,"창의성·혁신":2,"조직몰입·몰입":3,"직무만족":4,"무례·괴롭힘·일탈":5,"팀":6,"감정·정서":7,"이직·정착":8,"여성·다양성":9,"고용·비정규직":10,"기술·AI·디지털":11,"성격·개인특성":12,"조직·기업성과":13,"조직문화·풍토":14,"최고경영자·CEO":15,"개인·직무성과":16,"경력":17,"근로시간·근무제":18,"안전·건강":19,"직무특성·자율성":20,"팀성과":21,"갈등":22,"공정성":23,"교육훈련·학습":24,"권력·영향력":25,"성과주의·직무중심 인사":26,"윤리·CSR·ESG":27,"인사관리 현황·동향":28,"일-가정·워라밸":29,"임금·보상":30,"임파워먼트":31,"전략적 HRM·HR시스템":32,"조직시민행동":33,"참여·경영참가":34,"LMX·교환관계":35,"발언·침묵":36,"소진·스트레스":37,"신뢰":38,"웰빙·행복":39,"조직구조·변화":40,"지식경영":41,"고성과·고몰입 작업시스템":42,"국제·글로벌":43,"노사관계·노조":44,"동기·목표":45,"의사결정":46,"인사고과·평가":47,"자기효능감·심리자본":48,"정체성·동일시":49,"조직지원인식":50,"채용·선발":51,"커뮤니케이션":52},"cnt":{"리더십·상사":23,"창의성·혁신":17,"조직몰입·몰입":11,"직무만족":11,"무례·괴롭힘·일탈":9,"팀":9,"감정·정서":8,"이직·정착":8,"여성·다양성":7,"고용·비정규직":6,"기술·AI·디지털":6,"성격·개인특성":6,"조직·기업성과":6,"조직문화·풍토":6,"최고경영자·CEO":6,"개인·직무성과":4,"경력":4,"근로시간·근무제":4,"안전·건강":4,"직무특성·자율성":4,"팀성과":4,"갈등":3,"공정성":3,"교육훈련·학습":3,"권력·영향력":3,"성과주의·직무중심 인사":3,"윤리·CSR·ESG":3,"인사관리 현황·동향":3,"일-가정·워라밸":3,"임금·보상":3,"임파워먼트":3,"전략적 HRM·HR시스템":3,"조직시민행동":3,"참여·경영참가":3,"LMX·교환관계":2,"발언·침묵":2,"소진·스트레스":2,"신뢰":2,"웰빙·행복":2,"조직구조·변화":2,"지식경영":2,"고성과·고몰입 작업시스템":1,"국제·글로벌":1,"노사관계·노조":1,"동기·목표":1,"의사결정":1,"인사고과·평가":1,"자기효능감·심리자본":1,"정체성·동일시":1,"조직지원인식":1,"채용·선발":1,"커뮤니케이션":1}},{"from":2022,"to":2026,"tag":"","n":92,"top":[["리더십·상사",23],["창의성·혁신",12],["기술·AI·디지털",11],["조직몰입·몰입",10],["안전·건강",7],["감정·정서",6],["여성·다양성",6],["일-가정·워라밸",6],["고성과·고몰입 작업시스템",5],["윤리·CSR·ESG",5]],"new":["기술·AI·디지털","안전·건강","여성·다양성","일-가정·워라밸"],"gone":["직무만족","무례·괴롭힘·일탈","팀","이직·정착"],"rank":{"리더십·상사":1,"창의성·혁신":2,"기술·AI·디지털":3,"조직몰입·몰입":4,"안전·건강":5,"감정·정서":6,"여성·다양성":7,"일-가정·워라밸":8,"고성과·고몰입 작업시스템":9,"윤리·CSR·ESG":10,"인사관리 현황·동향":11,"자기효능감·심리자본":12,"직무만족":13,"고용·비정규직":14,"발언·침묵":15,"성격·개인특성":16,"소진·스트레스":17,"이직·정착":18,"인사고과·평가":19,"최고경영자·CEO":20,"국제·글로벌":21,"권력·영향력":22,"근로시간·근무제":23,"동기·목표":24,"웰빙·행복":25,"임파워먼트":26,"지식경영":27,"직무특성·자율성":28,"채용·선발":29,"커뮤니케이션":30,"팀":31,"LMX·교환관계":32,"경력":33,"교육훈련·학습":34,"노사관계·노조":35,"무례·괴롭힘·일탈":36,"신뢰":37,"심리적 계약":38,"임금·보상":39,"조직시민행동":40,"참여·경영참가":41,"갈등":42,"개인·직무성과":43,"성과주의·직무중심 인사":44,"적합성":45,"정체성·동일시":46,"조직·기업성과":47,"조직구조·변화":48,"조직문화·풍토":49},"cnt":{"리더십·상사":23,"창의성·혁신":12,"기술·AI·디지털":11,"조직몰입·몰입":10,"안전·건강":7,"감정·정서":6,"여성·다양성":6,"일-가정·워라밸":6,"고성과·고몰입 작업시스템":5,"윤리·CSR·ESG":5,"인사관리 현황·동향":5,"자기효능감·심리자본":5,"직무만족":5,"고용·비정규직":4,"발언·침묵":4,"성격·개인특성":4,"소진·스트레스":4,"이직·정착":4,"인사고과·평가":4,"최고경영자·CEO":4,"국제·글로벌":3,"권력·영향력":3,"근로시간·근무제":3,"동기·목표":3,"웰빙·행복":3,"임파워먼트":3,"지식경영":3,"직무특성·자율성":3,"채용·선발":3,"커뮤니케이션":3,"팀":3,"LMX·교환관계":2,"경력":2,"교육훈련·학습":2,"노사관계·노조":2,"무례·괴롭힘·일탈":2,"신뢰":2,"심리적 계약":2,"임금·보상":2,"조직시민행동":2,"참여·경영참가":2,"갈등":1,"개인·직무성과":1,"성과주의·직무중심 인사":1,"적합성":1,"정체성·동일시":1,"조직·기업성과":1,"조직구조·변화":1,"조직문화·풍토":1}}],"decades":[{"label":"1979–1986","n":66,"top":[["인사관리 현황·동향",14],["국제·글로벌",11],["임금·보상",8],["노사관계·노조",8],["교육훈련·학습",6],["리더십·상사",5]]},{"label":"1987–1996","n":177,"top":[["국제·글로벌",25],["인사관리 현황·동향",17],["임금·보상",16],["조직문화·풍토",14],["교육훈련·학습",13],["조직·기업성과",13]]},{"label":"1997–2006","n":273,"top":[["리더십·상사",42],["조직·기업성과",27],["조직몰입·몰입",26],["교육훈련·학습",22],["고용·비정규직",18],["인사관리 현황·동향",17]]},{"label":"2007–2016","n":272,"top":[["리더십·상사",55],["조직몰입·몰입",36],["창의성·혁신",30],["직무만족",26],["조직·기업성과",23],["팀",20]]},{"label":"2017–2026","n":205,"top":[["리더십·상사",46],["창의성·혁신",29],["조직몰입·몰입",21],["기술·AI·디지털",17],["직무만족",16],["감정·정서",14]]}],"coverage":[993,898]};
+(function(){
+  if(!RACE||!RACE.periods)return;
+  var root=document.querySelector('[data-chart="race"]');
+  var rows=root.querySelector('.rows'), tv=root.querySelector('.tablev'), chart=root.querySelector('.chart');
+  var P=RACE.periods, TOPN=8, ROW=48, els={}, idx=0, pbar=root.querySelector('.pbar'), pbtn=[];
+  P.forEach(function(p,k){var b=el('button');b.appendChild(el('b',null,p.from+'–'+String(p.to).slice(2)));b.appendChild(el('small',null,p.tag||'\u00a0'));b.onclick=function(){show(k)};pbar.appendChild(b);pbtn.push(b)});
+  function ensure(term){
+    if(els[term])return els[term];
+    var e=el('div','row'),nm=el('div','nm');nm.appendChild(el('span','tag',''));nm.appendChild(document.createTextNode(term));e.appendChild(nm);
+    var tr=el('div','tr');tr.appendChild(el('div','b'));e.appendChild(tr);e.appendChild(el('div','val',''));
+    rows.appendChild(e);void e.offsetWidth;   // 초기 위치(아래·투명)에서 전이가 시작되도록 강제 리플로
+    els[term]=e;return e;
+  }
+  function show(k){
+    var p=P[k], top=p.top.slice(0,TOPN), max=top[0][1], seen={};
+    var pr=k>0?P[k-1].rank:{}, pc=k>0?P[k-1].cnt:{};   // 직전 시기 전체 순위·편수
+    top.forEach(function(q,r){var e=ensure(q[0]);seen[q[0]]=1;e.style.transform='translateY('+(r*ROW)+'px)';e.style.opacity=1;
+      var prevR=pr[q[0]], prevC=pc[q[0]]||0, gain=prevR?prevR-(r+1):0;
+      var isNew=k>0&&p.new.indexOf(q[0])>-1, isUp=false;   // 새로 진입 = 직전 시기 상위 8에 없던 개념어 (상승폭은 표기하지 않음)
+      e.classList.toggle('new',isNew);e.classList.toggle('up',isUp);
+      var tag=e.querySelector('.tag');tag.textContent='';tag.style.display='none';
+      e.querySelector('.b').style.width=(q[1]/max*100)+'%';e.querySelector('.val').textContent=q[1]+'회'});
+    for(var t in els)if(!seen[t]){els[t].style.opacity=0;els[t].style.transform='translateY(384px)';els[t].classList.remove('new');els[t].classList.remove('up')}
+    pbtn.forEach(function(b,j){b.classList.toggle('on',j===k)});
+    idx=k;
+  }
+  function step(d){var k=idx+d;if(k<0||k>=P.length)return false;show(k);return true}
+  function reset(){chart.classList.remove('tbl');rows.textContent='';els={};show(0)}
+  function toggle(){chart.classList.toggle('tbl')}
+  (function(){ // T: 10년 단위 요약표
+    var t=el('table','dt'),thead=el('thead'),tr=el('tr');
+    ['시기','논문','제목 상위 개념어 (등장 횟수)'].forEach(function(h){tr.appendChild(el('th',null,h))});thead.appendChild(tr);t.appendChild(thead);
+    var tb=el('tbody');RACE.decades.forEach(function(d){var r=el('tr');r.appendChild(el('td',null,d.label));r.appendChild(el('td',null,d.n+'편'));
+      var c=el('td','terms');d.top.forEach(function(p,k){if(k)c.appendChild(document.createTextNode(' · '));c.appendChild(el('b',null,p[0]));c.appendChild(document.createTextNode(' '+p[1]))});r.appendChild(c);tb.appendChild(r)});
+    t.appendChild(tb);tv.appendChild(t);
+  })();
+  root.querySelector('.replay').onclick=reset;
+  root.querySelector('.tbtn').onclick=toggle;
+  show(0);
+  CHARTS['race']={play:reset,toggleTable:toggle,step:step};
+})();
+
+
+
+
+/* ───────── 표지: 50집을 50장의 판으로 쌓은 등각 입체 ───────── */
+(function(){
+  var root=document.querySelector('[data-chart="cover"]'), svg=root.querySelector('.cover-art');
+  var N=50, W=320, H=160, T=4, GAP=2.2, CX=330, BASE=590;
+  function mix(p,base){return 'color-mix(in srgb, var(--accent) '+p.toFixed(0)+'%, '+(base||'var(--surface)')+')'}
+  var defs=svgel('defs',{}), rg=svgel('radialGradient',{id:'cvShadow'});
+  [['0%','.28'],['100%','0']].forEach(function(st){var s=svgel('stop',{offset:st[0]});s.style.stopColor='var(--ink)';s.style.stopOpacity=st[1];rg.appendChild(s)});
+  defs.appendChild(rg);svg.appendChild(defs);
+  svg.appendChild(svgel('ellipse',{cx:CX,cy:BASE+H/2+26,rx:W*.62,ry:H*.34,fill:'url(#cvShadow)'}));
+  var plates=[];
+  for(var i=0;i<N;i++){
+    var f=i/(N-1), cy=BASE-i*(T+GAP), g=svgel('g',{'class':'pl'});
+    var L=[CX-W/2,cy], R=[CX+W/2,cy], F=[CX,cy+H/2], B=[CX,cy-H/2];
+    function pts(a){return a.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ')}
+    var left=svgel('polygon',{points:pts([L,F,[F[0],F[1]+T],[L[0],L[1]+T]])}); left.style.fill='color-mix(in srgb, '+mix(22+62*f)+' 82%, var(--ink))';
+    var right=svgel('polygon',{points:pts([F,R,[R[0],R[1]+T],[F[0],F[1]+T]])}); right.style.fill='color-mix(in srgb, '+mix(22+62*f)+' 92%, var(--ink))';
+    var top=svgel('polygon',{points:pts([B,R,F,L])}); top.style.fill=mix(i===N-1?100:(8+46*f));
+    if(i===N-1){top.style.stroke='var(--surface)';top.style.strokeWidth='1.5'}
+    g.appendChild(left);g.appendChild(right);g.appendChild(top);svg.appendChild(g);plates.push(g);
+  }
+  // 라벨: 맨 아래 1집(1979), 맨 위 제50집(2026)
+  function label(i,t1,t2){
+    var cy=BASE-i*(T+GAP), x0=CX+W/2, y0=cy+2, x1=x0+34;
+    var ld=svgel('line',{x1:x0+6,y1:y0,x2:x1,y2:y0,'class':'ld'});svg.appendChild(ld);
+    var a=svgel('text',{x:x1+8,y:y0-2,'class':'lbl'});a.textContent=t1;svg.appendChild(a);
+    var b=svgel('text',{x:x1+8,y:y0+16,'class':'lbl sub'});b.textContent=t2;svg.appendChild(b);
+    return [ld,a,b];
+  }
+  var lab0=label(0,'1집','1979 「인사관리연구」'), labN=label(N-1,'제50집','2026 「조직과 인사관리연구」');
+  // 반복 재생: 쌓기 → 잠시 멈춤 → 위에서부터 걷어내기 → 다시 쌓기 (표지가 보이는 동안만)
+  var timers=[], STEP=34;
+  function later(fn,ms){timers.push(setTimeout(fn,ms))}
+  function stop(){timers.forEach(clearTimeout);timers=[]}
+  function labels(on){lab0.concat(labN).forEach(function(e){e.classList.toggle('on',on)})}
+  function cycle(){
+    if(!root.classList.contains('active')){stop();return}
+    plates.forEach(function(g,i){g.style.transitionDelay=(i*STEP)+'ms';g.classList.add('on')});
+    later(function(){lab0.forEach(function(e){e.classList.add('on')})},300);
+    later(function(){labN.forEach(function(e){e.classList.add('on')})},N*STEP+300);
+    var built=N*STEP+700, hold=2600;
+    later(function(){
+      labels(false);
+      plates.forEach(function(g,i){g.style.transitionDelay=((N-1-i)*14)+'ms';g.classList.remove('on')});
+    },built+hold);
+    later(cycle,built+hold+N*14+900);
+  }
+  function play(){
+    stop();
+    plates.forEach(function(g){g.style.transitionDelay='0ms';g.classList.remove('on')});labels(false);
+    void svg.getBoundingClientRect();
+    if(reduce){plates.forEach(function(g){g.classList.add('on')});labels(true);return}
+    later(cycle,30);
+  }
+  CHARTS['cover']={play:play,toggleTable:function(){}};
+})();
+
+/* ───────── 연표 · 역사적 위상 ───────── */
+(function(){
+  var root=document.querySelector('[data-chart="hist"]'), svg=root.querySelector('svg');
+  var W=1134, X0=40, X1=1100, Y0=1954, Y1=2028, AX=300;
+  function X(y){return X0+(X1-X0)*(y-Y0)/(Y1-Y0)}
+  function T(tag,a,txt){var e=svgel(tag,a);if(txt!=null)e.textContent=txt;return e}
+  // 국내 유일 구간
+  svg.appendChild(svgel('rect',{x:X(1979),y:AX-150,width:X(1992)-X(1979),height:150,'class':'band'}));
+  svg.appendChild(T('text',{x:(X(1979)+X(1992))/2,y:AX-12,'class':'bandtxt'},'국내 유일 인사조직 전문지'));
+  // 축
+  svg.appendChild(svgel('line',{x1:X0,x2:X1,y1:AX,y2:AX,'class':'axis'}));
+  [1960,1970,1980,1990,2000,2010,2020].forEach(function(y){svg.appendChild(T('text',{x:X(y),y:AX+22,'class':'tk'},y))});
+  // KCI 등재 유지 막대
+  var reg=svgel('g',{'class':'ev'});reg.dataset.y=2005;
+  reg.appendChild(svgel('line',{x1:X(2005),x2:X(2026),y1:AX+40,y2:AX+40,'class':'reg'}));
+  reg.appendChild(T('text',{x:(X(2005)+X(2026))/2,y:AX+62,'class':'regtxt'},'KCI 등재 22년 연속 유지'));
+  svg.appendChild(reg);
+  // 사건: [연도, 위(1)/아래(-1), 높이, 정렬, 제목, 부제, 우리 학술지 여부]
+  var EV=[
+    [1956,-1,70,'start','한국경영학회 창립','',0],
+    [1978, 1,190,'end','한국인사관리학회 창립','경영학 분과학회 최초',1],
+    [1979, 1,90,'start','「인사관리연구」 창간','국내 최초 인사관리 전문 학술지',1],
+    [1992,-1,70,'start','「인사조직연구」 창간','한국인사조직학회',0],
+    [2002, 1,150,'end','KCI 등재후보','',1],
+    [2005, 1,200,'end','KCI 등재학술지 선정','',1],
+    [2010, 1,90,'start','「조직과 인사관리연구」','학술지명 변경',1],
+    [2026, 1,190,'end','통산 제50집','1,075편 · 누적 피인용 12,303회',1]
+  ];
+  var evs=[reg];
+  EV.forEach(function(e){
+    var y=e[0],dir=e[1],h=e[2],anc=e[3],me=e[6],x=X(y),ty=AX-dir*h;
+    var g=svgel('g',{'class':'ev'+(me?'':' o')});g.dataset.y=y;
+    g.appendChild(svgel('line',{x1:x,x2:x,y1:dir>0?AX:AX+30,y2:dir>0?ty+10:ty-36,'class':'lead-l'}));
+    g.appendChild(svgel('circle',{cx:x,cy:AX,r:me?7:5,'class':me?'dot-j':'dot-o'}));
+    var dx=anc==='end'?-8:8, base=dir>0?ty-34:ty;
+    g.appendChild(T('text',{x:x+dx,y:base,'text-anchor':anc,'class':'yr'+(me?'':' o')},y));
+    g.appendChild(T('text',{x:x+dx,y:base+19,'text-anchor':anc,'class':'t1'},e[4]));
+    if(e[5])g.appendChild(T('text',{x:x+dx,y:base+37,'text-anchor':anc,'class':'t2'},e[5]));
+    svg.appendChild(g);evs.push(g);
+  });
+  svg.appendChild(svgel('circle',{cx:X0+5,cy:AX-236,r:6,'class':'dot-j'}));svg.appendChild(T('text',{x:X0+18,y:AX-231,'class':'grp'},'조직과 인사관리연구 · 한국인사관리학회'));
+  function play(){
+    evs.forEach(function(g){g.classList.remove('on');g.style.transitionDelay='0ms'});void svg.getBoundingClientRect();
+    evs.forEach(function(g){g.style.transitionDelay=((+g.dataset.y-1954)*45)+'ms';g.classList.add('on')});
+  }
+  CHARTS['hist']={play:play,toggleTable:function(){}};
+})();
+
+/* ───────── 50집 분야 구성 (제목 기반 추정, 100% 누적 영역) ─────────
+   제목 1,026건마다 '투고자 자기선택'·'분야 편집위원 배정' 두 관점의 4분야 확률을 매겨 평균(비논문 17건 제외).
+   학회 2020–25 연도별 표에 맞춘 분야 가중치(인사관리 0.82, 조직이론/전략 0.50) 적용 → 6년 합 인사관리 49·조직행동 69·노사 3·전략 7 (학회 47·68·5·8) */
+var FIELD50={"rows":[["1979–86","창간기",[18,38,5,9]],["1987–96","성장기",[63,76,19,20]],["1997–01","IMF 전후",[49,46,12,9]],["2002–06","KCI 등재기",[89,54,17,9]],["2007–11","등재 정착",[66,37,16,10]],["2012–16","학술지명 변경 후",[95,32,13,2]],["2017–21","",[64,37,9,3]],["2022–26","",[48,36,6,2]]],"n":1009};
+(function(){
+  var CAT=[['조직행동(OB)','--s1'],['인사관리','--s2'],['조직이론/전략','--s3'],['노사','--s4']];
+  var R=FIELD50.rows, n=R.length;
+  var root=document.querySelector('[data-chart="field50"]'), chart=root.querySelector('.chart'), svg=root.querySelector('svg'), tip=root.querySelector('.tip'), tv=root.querySelector('.tablev');
+  var W=1134,H=440,ML=52,MR=180,MT=16,MB=52, pw=W-ML-MR, ph=H-MT-MB;
+  function X(i){return ML+pw*i/(n-1)}
+  function Y(v){return MT+ph*(1-v/100)}
+  var TOT=R.map(function(r){return r[2].reduce(function(a,b){return a+b},0)});
+  var SH=R.map(function(r,i){return r[2].map(function(v){return v/TOT[i]*100})});
+  var g=svgel('g',{'class':'grid'});
+  [0,25,50,75,100].forEach(function(v){g.appendChild(svgel('line',{x1:ML,x2:W-MR,y1:Y(v),y2:Y(v),'class':v===0?'base':''}));
+    var t=svgel('text',{x:ML-10,y:Y(v)+5,'class':'tick y'});t.textContent=v+'%';svg.appendChild(t)});
+  svg.appendChild(g);
+  R.forEach(function(r,i){var t=svgel('text',{x:X(i),y:H-MB+22,'class':'tick x'});t.textContent=r[0];svg.appendChild(t);
+    if(r[1]){var u=svgel('text',{x:X(i),y:H-MB+38,'class':'ptag'});u.textContent=r[1];svg.appendChild(u)}});
+  var areas=CAT.map(function(c){var e=svgel('path',{'class':'ar'});e.style.fill='var('+c[1]+')';svg.appendChild(e);return e});
+  var lines=CAT.map(function(c){var e=svgel('path',{'class':'aln'});e.style.stroke='var('+c[1]+')';svg.appendChild(e);return e});
+  var endL=CAT.map(function(c,k){var t=svgel('text',{'class':'alab'});t.textContent=c[0]+' ';var ts=svgel('tspan',{});ts.textContent=Math.round(SH[n-1][k])+'%';t.appendChild(ts);svg.appendChild(t);return t});
+  var startL=CAT.map(function(c,k){var t=svgel('text',{'class':'slab'});t.textContent=Math.round(SH[0][k])+'%';svg.appendChild(t);return t});
+  function frame(f){
+    var base=R.map(function(){return 0});
+    CAT.forEach(function(_,k){
+      var top=SH.map(function(r,i){return base[i]+r[k]*f}), d='';
+      for(var i=0;i<n;i++)d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(top[i]).toFixed(1);
+      lines[k].setAttribute('d',d);
+      for(var i=n-1;i>=0;i--)d+='L'+X(i).toFixed(1)+' '+Y(base[i]).toFixed(1);
+      areas[k].setAttribute('d',d+'Z');
+      endL[k].dataset.mid=(base[n-1]+top[n-1])/2;
+      startL[k].setAttribute('x',X(0)+10);startL[k].setAttribute('y',Y((base[0]+top[0])/2)+5);
+      startL[k].style.opacity=(f>=1&&(top[0]-base[0])*ph/100>=20)?1:0;
+      base=top;
+    });
+    var ys=endL.map(function(t){return Y(+t.dataset.mid)+5});
+    for(var k=1;k<ys.length;k++) if(ys[k-1]-ys[k]<20) ys[k]=ys[k-1]-20;
+    endL.forEach(function(t,k){t.setAttribute('x',X(n-1)+12);t.setAttribute('y',ys[k])});
+  }
+  var xh=svgel('line',{y1:MT,y2:H-MB,'class':'xh'});svg.appendChild(xh);
+  var hit=svgel('rect',{x:ML-30,y:MT,width:pw+60,height:ph,'class':'hit'});svg.appendChild(hit);
+  hit.addEventListener('pointermove',function(e){
+    var rect=svg.getBoundingClientRect(), x=(e.clientX-rect.left)*W/rect.width;
+    var i=Math.max(0,Math.min(n-1,Math.round((x-ML)/pw*(n-1))));
+    tip.textContent='';tip.appendChild(el('div','yr',R[i][0]+(R[i][1]?' · '+R[i][1]:'')+' · '+TOT[i]+'편'));
+    for(var k=CAT.length-1;k>=0;k--){var r=el('div','r'),sw=el('i','sw');sw.style.background='var('+CAT[k][1]+')';
+      r.appendChild(sw);r.appendChild(el('span',null,CAT[k][0]));r.appendChild(el('b',null,Math.round(SH[i][k])+'% · '+R[i][2][k]+'편'));tip.appendChild(r)}
+    var cr=chart.getBoundingClientRect(), px=X(i)*cr.width/W;
+    tip.style.left=(i>=n-3?px-210:px+16)+'px';tip.style.top=(MT*cr.height/H+10)+'px';tip.classList.add('on');
+    xh.setAttribute('x1',X(i));xh.setAttribute('x2',X(i));xh.style.opacity=1;
+  });
+  hit.addEventListener('pointerleave',function(){tip.classList.remove('on');xh.style.opacity=0});
+  (function(){
+    var t=el('table','dt'),thead=el('thead'),tr=el('tr');
+    ['시기','논문'].concat(CAT.map(function(c){return c[0]})).forEach(function(h){tr.appendChild(el('th',null,h))});thead.appendChild(tr);t.appendChild(thead);
+    var tb=el('tbody');R.forEach(function(r,i){var row=el('tr');[r[0],TOT[i]+'편'].concat(r[2].map(function(v,k){return v+'편 ('+Math.round(SH[i][k])+'%)'})).forEach(function(c){row.appendChild(el('td',null,c))});tb.appendChild(row)});
+    t.appendChild(tb);tv.appendChild(t);
+  })();
+  var raf=null;
+  function play(){
+    if(raf)cancelAnimationFrame(raf);chart.classList.remove('tbl');tip.classList.remove('on');
+    if(reduce){frame(1);return}
+    var t0=null;(function step(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/1500),e=1-Math.pow(1-p,3);frame(e);if(p<1)raf=requestAnimationFrame(step)})(performance.now());
+  }
+  frame(1);
+  CHARTS['field50']={play:play,toggleTable:function(){chart.classList.toggle('tbl')}};
+})();
+
+
+/* ───────── 인용 상위 30편 ───────── */
+(function(){
+  var max=TOP[0][4];
+  document.querySelectorAll('.top').forEach(function(box){
+    var a=+box.dataset.from,b=+box.dataset.to;
+    TOP.slice(a,b).forEach(function(p){
+      box.appendChild(el('div','rk'+(p[0]<=3?' gold':''),p[0]));
+      var t=el('div');t.appendChild(el('div','t',p[1]));
+      var m=el('div','m');m.appendChild(document.createTextNode(p[2]+' · '+p[3]+' · '));
+      p[5].forEach(function(au,j){if(j)m.appendChild(document.createTextNode(' · '));m.appendChild(el('b',null,au[0]));m.appendChild(document.createTextNode(au[1]?' ('+au[1]+')':' (소속 미기재)'))});
+      t.appendChild(m);box.appendChild(t);
+      var tr=el('div','tr'),bar=el('div','b');bar.dataset.w=p[4]/max*100;tr.appendChild(bar);box.appendChild(tr);
+      var c=el('div','c',p[4]);c.appendChild(el('small',null,'회'));box.appendChild(c);
+    });
+  });
+})();
+
+/* ───────── 슬라이드 내비게이션 ───────── */
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var n=slides.length, i=0;
+  var cur=document.getElementById('cur'), prog=document.getElementById('prog');
+  document.getElementById('tot').textContent=n;
+  var dotBox=document.getElementById('dots');
+  slides.forEach(function(_,k){var d=document.createElement('i');d.onclick=function(){go(k)};dotBox.appendChild(d)});
+  var dots=[].slice.call(dotBox.children);
+  function chartOf(s){var k=s.dataset.chart;return k?CHARTS[k]:null}
+  function growBars(s){ // 막대 애니메이션: 슬라이드 진입 시 0 → 값
+    var bars=s.querySelectorAll('.b[data-w]');
+    bars.forEach(function(b){b.style.width='0%'});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){bars.forEach(function(b){b.style.width=b.dataset.w+'%'})})});
+  }
+  function render(){
+    slides.forEach(function(s,k){s.classList.toggle('active',k===i);s.classList.toggle('prev',k<i)});
+    dots.forEach(function(d,k){d.classList.toggle('on',k===i)});
+    cur.textContent=i+1; prog.style.width=((i+1)/n*100)+'%';
+    var c=chartOf(slides[i]); if(c) setTimeout(c.play,350);
+    growBars(slides[i]);
+  }
+  function go(k){ if(k<0||k>=n)return; i=k; render(); }   // 범위 밖이면 무시(마지막 슬라이드에서 → 눌러도 리셋되지 않게)
+  // 단계형 차트(레이스)는 슬라이드 이동 전에 먼저 한 단계씩 소비한다
+  function next(){var c=chartOf(slides[i]);if(c&&c.step&&c.step(1))return;go(i+1)}
+  function prev(){var c=chartOf(slides[i]);if(c&&c.step&&c.step(-1))return;go(i-1)}
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  document.addEventListener('keydown',function(e){
+    var c=chartOf(slides[i]);
+    if(['ArrowRight','PageDown',' ','Spacebar'].indexOf(e.key)>-1){e.preventDefault();next()}
+    else if(['ArrowLeft','PageUp'].indexOf(e.key)>-1){e.preventDefault();prev()}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(n-1)}
+    else if(e.key==='f'||e.key==='F'){toggleFull()}
+    else if((e.key==='r'||e.key==='R')&&c){c.play()}
+    else if((e.key==='t'||e.key==='T')&&c){c.toggleTable()}
+  });
+  document.querySelector('.viewport').addEventListener('click',function(e){
+    if(e.target.closest('.ctl')||e.target.closest('a')||e.target.closest('button')||e.target.closest('.tablev')||e.target.closest('svg'))return;
+    var c=chartOf(slides[i]);
+    if(c&&c.step){next();return}          // 단계형 차트 슬라이드: 어디를 클릭해도 다음 시기
+    var x=e.clientX/window.innerWidth;
+    if(x>0.66)next(); else if(x<0.34)prev();
+  });
+  function toggleFull(){ if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }
+  var frame=document.getElementById('frame');
+  function fit(){
+    var pad=window.innerWidth<700?12:40;
+    var s=Math.min((window.innerWidth-pad*2)/1280,(window.innerHeight-pad*2)/720);
+    frame.style.transform='scale('+s+')';
+  }
+  window.addEventListener('resize',fit);
+  var x0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null)return; var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){dx<0?next():prev()} x0=null;
+  },{passive:true});
+  fit(); render();
+})();
+</script>
+</body>
+</html>

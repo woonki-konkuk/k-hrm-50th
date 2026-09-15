@@ -859,6 +859,7 @@ var FIELD50={"rows":[["1979–86","창간기",[18,38,5,9]],["1987–96","성장�
     if(r[1]){var u=svgel('text',{x:X(i),y:H-MB+38,'class':'ptag'});u.textContent=r[1];svg.appendChild(u)}});
   var areas=CAT.map(function(c){var e=svgel('path',{'class':'ar'});e.style.fill='var('+c[1]+')';svg.appendChild(e);return e});
   var PL=CAT.map(function(){return R.map(function(){return svgel('g',{})})});   // [분야][시기] % 라벨
+  var LABEL_AT=[0,3,4,5,7];   // % 표시할 시기: 창간기 · KCI 등재기 · 등재 정착 · 학술지명 변경 후 · 2022–26
   var lines=CAT.map(function(c){var e=svgel('path',{'class':'aln'});e.style.stroke='var('+c[1]+')';svg.appendChild(e);return e});
   var endL=CAT.map(function(c,k){var t=svgel('text',{'class':'alab'});t.textContent=c[0];svg.appendChild(t);return t});
   function frame(f){
@@ -874,7 +875,7 @@ var FIELD50={"rows":[["1979–86","창간기",[18,38,5,9]],["1987–96","성장�
       for(var i=0;i<n;i++){var lb=PL[k][i], th=(top[i]-base[i])*ph/100;
         var cx=i===0?X(0)+30:(i===n-1?X(n-1)-30:X(i));
         lb.setAttribute('transform','translate('+cx.toFixed(1)+','+Y((base[i]+top[i])/2).toFixed(1)+')');
-        lb.style.display=(f>=1&&th>=24)?'':'none';}
+        lb.style.display=(f>=1&&th>=24&&LABEL_AT.indexOf(i)>-1)?'':'none';}
       base=top;
     });
     var ys=endL.map(function(t){return Y(+t.dataset.mid)+5});

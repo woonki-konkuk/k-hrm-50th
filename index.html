@@ -940,14 +940,29 @@ var FIELD50={"rows":[["1979–86","창간기",[18,38,5,9]],["1987–96","성장�
     else if((e.key==='r'||e.key==='R')&&c){c.play()}
     else if((e.key==='t'||e.key==='T')&&c){c.toggleTable()}
   });
+  // 한 번 클릭 = 넘기기(더블클릭과 구분하려고 잠깐 기다림), 더블클릭 = 전체 화면 전환
+  var clickTimer=null;
   document.querySelector('.viewport').addEventListener('click',function(e){
-    if(e.target.closest('.ctl')||e.target.closest('a')||e.target.closest('button')||e.target.closest('.tablev')||e.target.closest('svg'))return;
-    var c=chartOf(slides[i]);
-    if(c&&c.step){next();return}          // 단계형 차트 슬라이드: 어디를 클릭해도 다음 시기
-    var x=e.clientX/window.innerWidth;
-    if(x>0.66)next(); else if(x<0.34)prev();
+    if(e.target.closest('a')||e.target.closest('button')||e.target.closest('.tablev')||e.target.closest('svg'))return;
+    clearTimeout(clickTimer);
+    if(e.detail>1)return;
+    var x=e.clientX/window.innerWidth, c=chartOf(slides[i]);
+    clickTimer=setTimeout(function(){
+      if(c&&c.step){next();return}          // 단계형 차트 슬라이드: 어디를 클릭해도 다음 시기
+      if(x>0.66)next(); else if(x<0.34)prev();
+    },260);
   });
-  function toggleFull(){ if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }
+  document.addEventListener('dblclick',function(e){
+    if(e.target.closest('a')||e.target.closest('button'))return;
+    clearTimeout(clickTimer);
+    if(window.getSelection)window.getSelection().removeAllRanges();
+    toggleFull();
+  });
+  function toggleFull(){
+    var d=document, r=d.documentElement;
+    if(!(d.fullscreenElement||d.webkitFullscreenElement)){var f=r.requestFullscreen||r.webkitRequestFullscreen;if(f)f.call(r)}
+    else{var x=d.exitFullscreen||d.webkitExitFullscreen;if(x)x.call(d)}
+  }
   var frame=document.getElementById('frame');
   function fit(){
     var pad=window.innerWidth<700?12:40;

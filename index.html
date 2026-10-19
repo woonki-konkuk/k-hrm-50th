@@ -218,6 +218,7 @@ table.dt td.terms b{color:var(--ink);font-weight:600}
 .cover h1.title small{font-size:24px;margin-top:22px;color:var(--ink2);font-weight:600;letter-spacing:-.005em}
 .cover-art{position:absolute;right:0;top:0;width:700px;height:720px;z-index:1;overflow:visible}
 .cover-art .pl{opacity:0;transform:translateY(26px);transition:opacity .5s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.cover-art.reset .pl,.cover-art.reset .lbl,.cover-art.reset .ld{transition:none!important}
 .cover-art .pl.on{opacity:1;transform:none}
 .cover-art .lbl{font-size:14px;font-weight:700;fill:var(--ink2);opacity:0;transition:opacity .6s}
 .cover-art .lbl.sub{font-weight:500;fill:var(--muted);font-size:12.5px}
@@ -688,6 +689,7 @@ function LineChart(root,o){
       frame(p*last);
       if(p<1)raf=requestAnimationFrame(step); else raf=null;
     }
+    frame(0);   // 시작 상태를 즉시 그린다 (다음 프레임까지 이전 완성 화면이 남지 않게)
     raf=requestAnimationFrame(step);
   }
   frame(0);
@@ -843,8 +845,10 @@ var RACE={"periods":[{"from":1979,"to":1986,"tag":"창간기","n":70,"top":[["�
   }
   function play(){
     stop();
+    svg.classList.add('reset');   // 되감기는 전이 없이 즉시 (다시 들어올 때 쌓인 판이 사라지는 장면이 보이지 않게)
     plates.forEach(function(g){g.style.transitionDelay='0ms';g.classList.remove('on')});labels(false);
     void svg.getBoundingClientRect();
+    svg.classList.remove('reset');
     if(reduce){plates.forEach(function(g){g.classList.add('on')});labels(true);return}
     later(cycle,30);
   }
@@ -1095,14 +1099,15 @@ var EDITORS=[[1979,"추 헌","중앙대"],[1980,"추 헌","중앙대"],[1981,"�
   slides.forEach(function(sl,k){sl.appendChild(el('div','pgnum',(k+1)+' / '+n))});   // 슬라이드 안 오른쪽 아래 쪽번호
   function chartOf(s){var k=s.dataset.chart;return k?CHARTS[k]:null}
   function growBars(s){ // 막대 애니메이션: 슬라이드 진입 시 0 → 값
-    var bars=s.querySelectorAll('.b[data-w]');
-    bars.forEach(function(b){b.style.width='0%'});
+    var bars=s.querySelectorAll('.b[data-w]'); if(!bars.length)return;
+    bars.forEach(function(b){b.style.transition='none';b.style.width='0%'});   // 되감기는 전이 없이 즉시
+    void s.offsetWidth; bars.forEach(function(b){b.style.transition=''});
     requestAnimationFrame(function(){requestAnimationFrame(function(){bars.forEach(function(b){b.style.width=b.dataset.w+'%'})})});
   }
   function render(){
     slides.forEach(function(s,k){s.classList.toggle('active',k===i);s.classList.toggle('prev',k<i)});
     slides.forEach(function(sl,k){if(k!==i)sl.dispatchEvent(new Event('slideleave'))});
-    var c=chartOf(slides[i]); if(c) setTimeout(c.play,350);
+    var c=chartOf(slides[i]); if(c) c.play();   // 진입하는 그 프레임에 시작 상태로 되돌려야 완성 화면이 먼저 비치지 않음
     growBars(slides[i]);
   }
   function go(k){ if(k<0||k>=n)return; i=k; render(); }   // 범위 밖이면 무시(마지막 슬라이드에서 → 눌러도 리셋되지 않게)
